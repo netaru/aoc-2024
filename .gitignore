@@ -1,0 +1,7 @@
+/.cache/
+/00-test-file/
+/build/
+/compile_commands.json
+**input.txt
+**instructions.txt
+**test.txt
