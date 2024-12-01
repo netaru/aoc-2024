@@ -6,8 +6,6 @@
 #include <utility>
 #include <vector>
 
-#include "split.h"
-
 using pairs = std::vector<std::pair<int, int>>;
 using freq  = std::unordered_map<int, int>;
 
@@ -38,11 +36,11 @@ int part2(std::vector<int> left, std::vector<int> right) {
 }
 
 void parse(std::vector<int> &left, std::vector<int> &right) {
+    int first, second;
     std::string s;
-    while (std::getline(std::cin, s)) {
-        std::vector<int> values = split<int>(s);
-        left.push_back(values.front());
-        right.push_back(values.back());
+    while (std::cin >> first >> second) {
+        left.push_back(first);
+        right.push_back(second);
     }
 }
 
