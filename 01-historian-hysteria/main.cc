@@ -37,14 +37,18 @@ int part2(std::vector<int> left, std::vector<int> right) {
     return std::accumulate(left.begin(), left.end(), 0, [&f](int acc, int value) { return (value * f[value]) + acc; });
 }
 
-int main(int argc, char *argv[]) {
-    std::string      s;
-    std::vector<int> left, right;
+void parse(std::vector<int> &left, std::vector<int> &right) {
+    std::string s;
     while (std::getline(std::cin, s)) {
         std::vector<int> values = split<int>(s);
         left.push_back(values.front());
         right.push_back(values.back());
     }
+}
+
+int main(int argc, char *argv[]) {
+    std::vector<int> left, right;
+    parse(left, right);
     std::cout << "Part1: " << part1(left, right) << "\n";
     std::cout << "Part2: " << part2(left, right) << "\n";
     return 0;
