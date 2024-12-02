@@ -6,7 +6,7 @@
 
 #include "split.h"
 
-using report = std::vector<int>;
+using report  = std::vector<int>;
 using reports = std::vector<report>;
 
 bool is_sorted(report r) {
@@ -36,9 +36,6 @@ bool part2_predicate(report r) {
     return safe;
 }
 
-int part1(reports rs) { return std::count_if(rs.begin(), rs.end(), part1_predicate); }
-int part2(reports rs) { return std::count_if(rs.begin(), rs.end(), part2_predicate); }
-
 reports parse() {
     reports     rs;
     std::string s;
@@ -47,8 +44,8 @@ reports parse() {
 }
 
 int main(int argc, char *argv[]) {
-    reports r = parse();
-    std::cout << "Part1: " << part1(r) << "\n";
-    std::cout << "Part2: " << part2(r) << "\n";
+    reports rs = parse();
+    std::cout << "Part1: " << std::count_if(rs.begin(), rs.end(), part1_predicate) << "\n";
+    std::cout << "Part2: " << std::count_if(rs.begin(), rs.end(), part2_predicate) << "\n";
     return 0;
 }
