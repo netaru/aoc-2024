@@ -1,12 +1,11 @@
 #include <algorithm>
+#include <complex>
 #include <iostream>
 #include <numeric>
 #include <string>
 #include <vector>
 
-#include "2dgrid.h"
-
-using strings = std::vector<std::string>;
+using position = std::complex<int64_t>;
 
 std::string sort(std::string s) {
     std::sort(s.begin(), s.end());
@@ -14,43 +13,45 @@ std::string sort(std::string s) {
 }
 
 struct station {
-    map                   m;
-    std::vector<position> as, xs,
-            directions{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } };
+    std::vector<std::string> grid;
+    std::vector<position>    as, xs,
+            dirs{ { -1, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
 
     station(std::istream &is) {
         std::string s;
         for (int i = 0; std::getline(is, s); ++i) {
+            grid.push_back(s);
             for (int j = 0; j < s.size(); ++j) {
-                position p{ i, j };
-                m[p] = s[j];
-                if (s[j] == 'A') { as.push_back(p); }
-                if (s[j] == 'X') { xs.push_back(p); }
+                if (s[j] == 'A') { as.push_back({ i, j }); }
+                if (s[j] == 'X') { xs.push_back({ i, j }); }
             }
         }
     }
 
+    bool valid(position p) {
+        return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
+    }
+
+    char get(position p) { return valid(p) ? grid[p.real()][p.imag()] : '-'; }
+
     std::string slice(position from, position delta, size_t sz) {
         std::string s;
-        for (int i = 0; i < sz; ++i, from += delta) { s.push_back(m[from]); }
+        for (int i = 0; i < sz; ++i, from += delta) { s += get(from); }
         return s;
     }
 
     int part1() {
         return std::accumulate(xs.begin(), xs.end(), 0, [this](int acc, position p) {
-            strings ss =
-                    std::accumulate(directions.begin(), directions.end(), strings{}, [&](strings acc, position dir) {
-                        acc.push_back(slice(p, dir, 4));
-                        return acc;
-                    });
-            return std::count_if(ss.begin(), ss.end(), [](std::string s) { return s == "XMAS"; }) + acc;
+            return acc + std::count_if(dirs.begin(), dirs.end(), [&](position delta) {
+                       return slice(p, delta, 4) == "XMAS";
+                   });
         });
     }
 
-    int part2() {
+    bool isAMS(position p, position delta) { return sort(slice(p, delta, 3)) == "AMS"; }
+    int  part2() {
         return std::count_if(as.begin(), as.end(), [&](position p) {
-            return sort(slice(p + position{ -1, -1 }, { 1, 1 }, 3)) == "AMS" &&
-                   sort(slice(p + position{ 1, -1 }, { -1, 1 }, 3)) == "AMS";
+            return isAMS(p + dirs[0], dirs[1]) and isAMS(p + dirs[2], dirs[3]);
         });
     }
 };
