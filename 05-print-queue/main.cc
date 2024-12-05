@@ -1,10 +1,10 @@
-#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
 #include "split.h"
 
 using page_t  = std::vector<int>;
