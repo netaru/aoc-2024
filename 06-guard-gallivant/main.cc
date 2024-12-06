@@ -10,17 +10,18 @@
 
 struct lab {
     int                      direction = 0;
-    position                 where;
+    position                 where, start, block;
     std::vector<position>    paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
     std::vector<std::string> grid;
     visit_history            visited;
+    history                  uniq;
 
     lab(std::istream& is) {
         std::string s;
         for (int i = 0; std::getline(is, s); ++i) {
             for (int j = 0; j < s.size(); ++j) {
                 if (s[j] == '^') {
-                    where = { i, j };
+                    where = start = { i, j };
                     visited.insert({ where, paths[direction] });
                 }
             }
@@ -28,7 +29,7 @@ struct lab {
         }
     }
 
-    lab(position w, std::vector<std::string> g) : where(w), grid(g) { visited.insert({ where, paths[direction] }); }
+    lab(std::vector<std::string> g, position w, position b) : where(w), grid(g), block(b) { set(block, '#'); }
 
     bool valid(position p) {
         return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
@@ -41,12 +42,12 @@ struct lab {
 
     bool walk() {
         where += paths[direction];
-        if (valid(where)) {
-            visit v{ where, paths[direction] };
-            if (visited.contains(v)) { return false; }
+        if (visit v{ where, paths[direction] }; valid(where) and !visited.contains(v)) {
             visited.insert(v);
+            return true;
+        } else {
+            return false;
         }
-        return true;
     }
 
     void traverse() {
@@ -55,25 +56,12 @@ struct lab {
             if (!walk()) break;
         }
     }
-};
-
-struct stuck : public lab {
-    position block;
-
-    stuck(std::vector<std::string> g, position start, position b) : lab(start, g), block(b) { set(block, '#'); }
 
     bool is_stuck() {
         if (block == where) return false;
         traverse();
         return valid(where);
     }
-};
-
-struct guard : lab {
-    position start;
-    history  uniq;
-
-    guard(std::istream& is) : lab(is), start(where) {}
 
     int part1() {
         traverse();
@@ -85,17 +73,17 @@ struct guard : lab {
     }
 
     int part2() const {
-        std::vector<stuck> ss = std::accumulate(
-                uniq.begin(), uniq.end(), std::vector<stuck>{}, [this](std::vector<stuck> acc, position block) {
-                    acc.emplace_back(grid, start, block);
+        std::vector<lab> labs =
+                std::accumulate(uniq.begin(), uniq.end(), std::vector<lab>{}, [this](std::vector<lab> acc, position b) {
+                    acc.emplace_back(grid, start, b);
                     return acc;
                 });
-        return std::count_if(std::execution::par, ss.begin(), ss.end(), [](stuck s) { return s.is_stuck(); });
+        return std::count_if(std::execution::par, labs.begin(), labs.end(), [](lab l) { return l.is_stuck(); });
     }
 };
 
 int main(int argc, char* argv[]) {
-    guard l(std::cin);
+    lab l(std::cin);
     std::cout << "Part1: " << l.part1() << "\n";
     std::cout << "Part2: " << l.part2() << "\n";
     return 0;
