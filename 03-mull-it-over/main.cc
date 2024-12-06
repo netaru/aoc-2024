@@ -10,13 +10,11 @@ int solve(std::string s) {
     return std::accumulate(std::sregex_iterator(s.begin(), s.end(), r), {}, 0, accumulator);
 }
 
-std::string remove_donts(std::string s) {
-    while (true) {
-        size_t from = s.find("don't()"), to = s.find("do()", from);
-        if (from == std::string::npos) break;
-        s.erase(from, to - from);
-    }
-    return s;
+std::string remove_donts(std::string s, std::string ns = "") {
+    ns.reserve(s.size());
+    std::regex disabled("don't\\(\\).*?(?:do\\(\\))");
+    std::regex_replace(std::back_inserter(ns), s.begin(), s.end(), disabled, "");
+    return ns;
 }
 
 int main(int argc, char *argv[]) {
