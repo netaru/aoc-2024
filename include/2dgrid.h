@@ -7,6 +7,7 @@
 #include <utility>
 
 using position = std::complex<int64_t>;
+using history  = std::unordered_set<position>;
 
 template <>
 struct std::hash<position> {
@@ -14,6 +15,25 @@ struct std::hash<position> {
         return std::hash<int64_t>()(p.real()) ^ (std::hash<int64_t>()(p.imag()) << 1);
     }
 };
+
+struct visit {
+    position where, direction;
+
+    visit(position w, position d) : where(w), direction(d) {}
+    friend bool operator==(const visit& lhs, const visit& rhs) {
+        return lhs.where == rhs.where and lhs.direction == rhs.direction;
+    }
+};
+
+template <>
+struct std::hash<visit> {
+    std::size_t operator()(const struct visit& v) const {
+        return std::hash<int64_t>()(v.where.real()) ^ (std::hash<int64_t>()(v.where.imag()) << 1) ^
+               std::hash<int64_t>()(v.direction.real() << 2) ^ (std::hash<int64_t>()(v.direction.imag()) << 3);
+    }
+};
+
+using visit_history = std::unordered_set<visit>;
 
 using map      = std::unordered_map<position, char>;
 using map_pair = std::pair<position, char>;

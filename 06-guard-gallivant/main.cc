@@ -8,32 +8,12 @@
 
 #include "2dgrid.h"
 
-using position = std::complex<int64_t>;
-using history  = std::unordered_set<position>;
-
-struct visit {
-    position where, direction;
-
-    visit(position w, position d) : where(w), direction(d) {}
-    friend bool operator==(const visit& lhs, const visit& rhs) {
-        return lhs.where == rhs.where and lhs.direction == rhs.direction;
-    }
-};
-
-template <>
-struct std::hash<visit> {
-    std::size_t operator()(const struct visit& v) const {
-        return std::hash<int64_t>()(v.where.real()) ^ (std::hash<int64_t>()(v.where.imag()) << 1) ^
-               std::hash<int64_t>()(v.direction.real() << 2) ^ (std::hash<int64_t>()(v.direction.imag()) << 3);
-    }
-};
-
 struct lab {
-    int                       direction = 0;
-    position                  where;
-    std::vector<position>     paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
-    std::unordered_set<visit> visited;
-    std::vector<std::string>  grid;
+    int                      direction = 0;
+    position                 where;
+    std::vector<position>    paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
+    std::vector<std::string> grid;
+    visit_history            visited;
 
     lab(std::istream& is) {
         std::string s;
@@ -55,17 +35,14 @@ struct lab {
     }
 
     char get(position p) { return valid(p) ? grid[p.real()][p.imag()] : '-'; }
-
     void set(position p, char c) { grid[p.real()][p.imag()] = c; }
-
     void update_direction() { direction = (direction + 1) % paths.size(); }
-
     char peek() { return get(where + paths[direction]); }
 
     bool walk() {
         where += paths[direction];
-        visit v{ where, paths[direction] };
         if (valid(where)) {
+            visit v{ where, paths[direction] };
             if (visited.contains(v)) { return false; }
             visited.insert(v);
         }
