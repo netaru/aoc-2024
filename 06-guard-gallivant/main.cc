@@ -11,15 +11,32 @@
 
 using position = std::complex<int64_t>;
 
+struct visit {
+    position where, direction;
+
+    visit(position w, position d) : where(w), direction(d) {}
+    friend bool operator==(const visit& lhs, const visit& rhs) {
+        return lhs.where == rhs.where and lhs.direction == rhs.direction;
+    }
+};
+
+template <>
+struct std::hash<visit> {
+    std::size_t operator()(const struct visit& v) const {
+        return std::hash<int64_t>()(v.where.real()) ^ (std::hash<int64_t>()(v.where.imag()) << 1) ^
+               std::hash<int64_t>()(v.direction.real() << 2) ^ (std::hash<int64_t>()(v.direction.imag()) << 3);
+    }
+};
+
 struct stuck {
-    int                                        direction = 0;
-    position                                   where, p;
-    std::vector<position>                      paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
-    std::vector<std::pair<position, position>> visited;
-    std::vector<std::string>                   grid;
+    int                       direction = 0;
+    position                  where, p;
+    std::vector<position>     paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
+    std::unordered_set<visit> visited;
+    std::vector<std::string>  grid;
 
     stuck(std::vector<std::string> g, position start, position extra) : where(start), p(extra), grid(g) {
-        visited.push_back({ where, paths[direction] });
+        visited.insert({ where, paths[direction] });
         set(p, '#');
     }
 
@@ -35,18 +52,12 @@ struct stuck {
 
     char peek() { return get(where + paths[direction]); }
 
-    bool contains(std::pair<position, position> pp) {
-        return std::find_if(visited.begin(), visited.end(), [&](std::pair<position, position> inner) {
-                   return pp.first == inner.first and pp.second == inner.second;
-               }) != visited.end();
-    }
-
     bool walk() {
         where += paths[direction];
-        std::pair<position, position> pos{ where, paths[direction] };
+        visit v{ where, paths[direction] };
         if (valid(where)) {
-            if (contains(pos)) { return false; }
-            visited.push_back(pos);
+            if (visited.contains(v)) { return false; }
+            visited.insert(v);
         }
         return true;
     }
@@ -68,7 +79,7 @@ struct lab {
     std::vector<position>        paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
     std::vector<std::string>     grid;
 
-    lab(std::istream &is) {
+    lab(std::istream& is) {
         std::string s;
         for (int i = 0; std::getline(is, s); ++i) {
             for (int j = 0; j < s.size(); ++j) {
@@ -116,7 +127,7 @@ struct lab {
     }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     lab l(std::cin);
     std::cout << "Part1: " << l.part1() << "\n";
     std::cout << "Part2: " << l.part2() << "\n";
