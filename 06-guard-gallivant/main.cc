@@ -22,7 +22,7 @@ struct lab {
             for (int j = 0; j < s.size(); ++j) {
                 if (s[j] == '^') {
                     where = start = { i, j };
-                    visited.insert({ where, paths[direction] });
+                    uniq.insert(where);
                 }
             }
             grid.push_back(s);
@@ -37,38 +37,44 @@ struct lab {
 
     char get(position p) { return valid(p) ? grid[p.real()][p.imag()] : '-'; }
     void set(position p, char c) { grid[p.real()][p.imag()] = c; }
-    void update_direction() { direction = (direction + 1) % paths.size(); }
     char peek() { return get(where + paths[direction]); }
 
-    bool walk() {
-        where += paths[direction];
-        if (visit v{ where, paths[direction] }; valid(where) and !visited.contains(v)) {
+    bool update_direction() {
+        bool should_continue = true;
+        if (visit v{ where, paths[direction] }; !visited.contains(v)) {
             visited.insert(v);
-            return true;
         } else {
-            return false;
+            should_continue = false;
+        }
+        direction = (direction + 1) % paths.size();
+        return should_continue;
+    }
+
+    template <int part>
+    void walk() {
+        where += paths[direction];
+        if constexpr (part == 1) {
+            if (valid(where)) { uniq.insert(where); }
         }
     }
 
+    template <int part = 1>
     void traverse() {
         while (valid(where)) {
-            while (peek() == '#') { update_direction(); }
-            if (!walk()) break;
+            while (peek() == '#')
+                if (!update_direction()) return;
+            walk<part>();
         }
     }
 
     bool is_stuck() {
         if (block == where) return false;
-        traverse();
+        traverse<2>();
         return valid(where);
     }
 
     int part1() {
         traverse();
-        uniq = std::accumulate(visited.begin(), visited.end(), history{}, [](history acc, visit v) {
-            acc.insert(v.where);
-            return acc;
-        });
         return uniq.size();
     }
 
