@@ -1,7 +1,6 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <execution>
 #include <iostream>
 #include <istream>
 #include <numeric>
@@ -44,13 +43,6 @@ struct problem {
         : input(split(s, ':')), target(std::stoull(input.front())), values(split<int_t>(input.back())) {}
 };
 
-int_t reduce(const int_t &lhs, const int_t &rhs) { return lhs + rhs; }
-int_t reduce(const problem &lhs, const int_t &rhs) { return (lhs.solveable<2>() ? lhs.target : 0) + rhs; }
-int_t reduce(const int_t &lhs, const problem &rhs) { return (rhs.solveable<2>() ? rhs.target : 0) + lhs; }
-int_t reduce(const problem &lhs, const problem &rhs) {
-    return (lhs.solveable<2>() ? lhs.target : 0) + (rhs.solveable<2>() ? rhs.target : 0);
-}
-
 struct calc {
     std::vector<problem> problems;
 
@@ -67,8 +59,8 @@ struct calc {
     }
 
     int_t part2() {
-        return std::reduce(std::execution::par, problems.cbegin(), problems.cend(), int_t(0), [](auto lhs, auto rhs) {
-            return reduce(lhs, rhs);
+        return std::accumulate(problems.cbegin(), problems.cend(), 0ull, [](int_t acc, problem p) {
+            return acc + (p.solveable<2>() ? p.target : 0);
         });
     }
 };
