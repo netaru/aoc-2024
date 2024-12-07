@@ -13,12 +13,6 @@
 using int_t    = std::uint64_t;
 using values_t = std::deque<int_t>;
 
-int_t pop_front(values_t &values) {
-    int_t r = values.front();
-    values.pop_front();
-    return r;
-}
-
 struct problem {
     int_t    target;
     values_t values;
@@ -38,22 +32,19 @@ struct problem {
     }
 
     template <int part>
-    bool solveable(values_t remaining, int_t sum) {
-        if (!remaining.size()) return sum == target;
-        int_t value = pop_front(remaining);
+    bool solveable(values_t::const_iterator iter, int_t sum) {
+        if (iter == values.cend()) return sum == target;
         if constexpr (part == 2) {
-            return solveable<part>(remaining, sum + value) || solveable<part>(remaining, sum * value) ||
-                   solveable<part>(remaining, concat(sum, value));
+            return solveable<part>(iter + 1, sum + (*iter)) || solveable<part>(iter + 1, sum * (*iter)) ||
+                   solveable<part>(iter + 1, concat(sum, (*iter)));
         } else {
-            return solveable<part>(remaining, sum + value) || solveable<part>(remaining, sum * value);
+            return solveable<part>(iter + 1, sum + (*iter)) || solveable<part>(iter + 1, sum * (*iter));
         }
     }
 
     template <int part = 1>
     bool solveable() {
-        values_t values_copy = values;
-        int_t    sum         = pop_front(values_copy);
-        return solveable<part>(values_copy, sum);
+        return solveable<part>(values.cbegin() + 1, *values.cbegin());
     }
 
     problem(std::string s) {
