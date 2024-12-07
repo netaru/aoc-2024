@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <execution>
@@ -22,9 +23,18 @@ struct problem {
     int_t    target;
     values_t values;
 
+    size_t digit(int_t value) {
+        size_t d = 0;
+        while (value) {
+            ++d;
+            value /= 10;
+        }
+        return d;
+    }
+
     int_t concat(int_t sum, int_t value) {
-        for (size_t u = std::to_string(value).size(); u; --u) sum *= 10;
-        return sum + value++;
+        for (size_t u = digit(value); u; --u) sum *= 10;
+        return sum + value;
     }
 
     template <int part>
@@ -57,6 +67,13 @@ struct problem {
     }
 };
 
+int_t reduce(int_t lhs, int_t rhs) { return lhs + rhs; }
+int_t reduce(problem lhs, int_t rhs) { return (lhs.solveable<2>() ? lhs.target : 0) + rhs; }
+int_t reduce(int_t lhs, problem rhs) { return (rhs.solveable<2>() ? rhs.target : 0) + lhs; }
+int_t reduce(problem lhs, problem rhs) {
+    return (lhs.solveable<2>() ? lhs.target : 0) + (rhs.solveable<2>() ? rhs.target : 0);
+}
+
 struct calc {
     std::vector<problem> problems;
 
@@ -73,9 +90,8 @@ struct calc {
     }
 
     int_t part2() {
-        return std::accumulate(problems.begin(), problems.end(), int_t(0), [](int_t acc, problem p) {
-            if (p.solveable<2>()) { acc += p.target; }
-            return acc;
+        return std::reduce(std::execution::par, problems.cbegin(), problems.cend(), int_t(0), [](auto lhs, auto rhs) {
+            return reduce(lhs, rhs);
         });
     }
 };
