@@ -1,6 +1,5 @@
 #include <cstddef>
 #include <cstdint>
-#include <deque>
 #include <execution>
 #include <iostream>
 #include <istream>
@@ -11,7 +10,7 @@
 #include "split.h"
 
 using int_t    = std::uint64_t;
-using values_t = std::deque<int_t>;
+using values_t = std::vector<int_t>;
 
 struct problem {
     int_t    target;
@@ -49,12 +48,9 @@ struct problem {
 
     problem(std::string s) {
         std::vector<std::string> ss = split(s, ':');
-        target                      = std::stoll(ss.front());
-        std::vector<std::string> is = split(ss.back());
-        values = std::accumulate(is.cbegin(), is.cend(), values_t{}, [](values_t acc, std::string value) {
-            acc.push_back(std::stoull(value));
-            return acc;
-        });
+
+        target = std::stoll(ss.front());
+        values = split<int_t>(ss.back());
     }
 };
 

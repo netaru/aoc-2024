@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -9,18 +10,25 @@ std::vector<T> split(std::string s, char delim = ' ') {
     while (true) {
         size_t where = s.find(delim);
         if (where == std::string::npos) {
+            if (!s.size()) break;
             if constexpr (std::is_same_v<T, int>) {
-                if (s.size()) result.push_back(std::stoi(s));
+                result.push_back(std::stoi(s));
+            } else if constexpr (std::is_same_v<T, std::uint64_t>) {
+                result.push_back(std::stoull(s));
             } else {
-                if (s.size()) result.push_back(s);
+                result.push_back(s);
             }
             break;
         }
         std::string part{ s.substr(0, where) };
-        if constexpr (std::is_same_v<T, int>) {
-            if (part.size()) result.push_back(std::stoi(part));
-        } else {
-            if (part.size()) result.push_back(part);
+        if (part.size()) {
+            if constexpr (std::is_same_v<T, int> or std::is_same_v<T, std::uint64_t>) {
+                result.push_back(std::stoi(part));
+            } else if constexpr (std::is_same_v<T, std::uint64_t>) {
+                result.push_back(std::stoull(s));
+            } else {
+                result.push_back(part);
+            }
         }
         s = s.substr(where + 1);
     }
