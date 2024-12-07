@@ -1,16 +1,13 @@
 #include <algorithm>
-#include <execution>
 #include <iostream>
-#include <numeric>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "2dgrid.h"
 
 struct lab {
     int                      direction = 0;
-    position                 where, start, block;
+    position                 where, start;
     std::vector<position>    paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
     std::vector<std::string> grid;
     visit_history            visited;
@@ -29,8 +26,6 @@ struct lab {
         }
     }
 
-    lab(std::vector<std::string> g, position w, position b) : where(w), grid(g), block(b) { set(block, '#'); }
-
     bool valid(position p) {
         return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
     }
@@ -39,15 +34,19 @@ struct lab {
     void set(position p, char c) { grid[p.real()][p.imag()] = c; }
     char peek() { return get(where + paths[direction]); }
 
+    template <int part>
     bool update_direction() {
-        bool should_continue = true;
+        if constexpr (part == 1) {
+            direction = (direction + 1) % paths.size();
+            return true;
+        }
         if (visit v{ where, paths[direction] }; !visited.contains(v)) {
             visited.insert(v);
+            direction = (direction + 1) % paths.size();
+            return true;
         } else {
-            should_continue = false;
+            return false;
         }
-        direction = (direction + 1) % paths.size();
-        return should_continue;
     }
 
     template <int part>
@@ -62,14 +61,18 @@ struct lab {
     void traverse() {
         while (valid(where)) {
             while (peek() == '#')
-                if (!update_direction()) return;
+                if (!update_direction<part>()) return;
             walk<part>();
         }
     }
 
-    bool is_stuck() {
-        if (block == where) return false;
+    bool is_stuck(position block) {
+        where = start;
+        visited.clear();
+        direction = 0;
+        set(block, '#');
         traverse<2>();
+        set(block, '.');
         return valid(where);
     }
 
@@ -78,13 +81,9 @@ struct lab {
         return uniq.size();
     }
 
-    int part2() const {
-        std::vector<lab> labs =
-                std::accumulate(uniq.begin(), uniq.end(), std::vector<lab>{}, [this](std::vector<lab> acc, position b) {
-                    acc.emplace_back(grid, start, b);
-                    return acc;
-                });
-        return std::count_if(std::execution::par, labs.begin(), labs.end(), [](lab l) { return l.is_stuck(); });
+    int part2() {
+        uniq.erase(uniq.find(start));
+        return std::count_if(uniq.begin(), uniq.end(), [&](position block) { return is_stuck(block); });
     }
 };
 
