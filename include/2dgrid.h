@@ -2,6 +2,7 @@
 
 #include <complex>
 #include <cstdint>
+#include <cstdlib>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -49,3 +50,6 @@ inline position correction(position head, position tail) {
     position n = head - tail;
     return { norm(n.real()), norm(n.imag()) };
 }
+
+inline int64_t abs(position p) { return std::abs(static_cast<std::complex<double>>(p)); }
+inline int64_t arg(position p) { return std::arg(static_cast<std::complex<double>>(p)); }
