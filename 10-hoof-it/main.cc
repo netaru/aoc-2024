@@ -1,18 +1,25 @@
 #include <deque>
 #include <iostream>
 #include <istream>
+#include <numeric>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "2dgrid.h"
+
 using map_t = std::unordered_map<position, int>;
+using queue = std::deque<std::pair<position, int>>;
+
+queue::value_type pop(queue &q) {
+    queue::value_type value = q.front();
+    q.pop_front();
+    return value;
+}
 
 struct top {
-    map_t                 pos;
-    set                   starts;
-    position              up{ 1, 0 }, down{ -1, 0 }, right{ 0, 1 }, left{ 0, -1 };
-    std::vector<position> dirs{ up, down, right, left };
+    map_t grid;
+    set   starts;
 
     top(std::istream &is) {
         std::string s;
@@ -21,46 +28,48 @@ struct top {
             for (int x = 0; x < s.size(); x++) {
                 position current{ x, y };
                 if (s[x] == '0') { starts.insert(current); }
-                if (s[x] != '.') pos[current] = (s[x] - '0');
+                grid[current] = (s[x] - '0');
             }
             ++y;
         }
     }
 
-    int score() {
+    template <int part>
+    int bfs(position pos) {
         int sum = 0;
-        for (position p : starts) {
-            int                                  count = 0;
-            std::deque<std::pair<position, int>> q{ { p, 0 } };
-            set                                  visited;
-            // std::cout << "New Iter: " << p << "\n";
-            while (q.size()) {
-                const auto &[curr, value] = q.front();
-                // std::cout << "Here: " << curr << ", value: " << pos[curr] << ", input: " << value << "\n";
-                q.pop_front();
-                if (visited.contains(curr)) continue;
-                visited.insert(curr);
-                if (value == 9) {
-                    count++;
-                    continue;
-                }
+        set visited;
 
-                int seek = value + 1;
-                for (auto dir : dirs) {
-                    position new_pos = curr + dir;
-                    if (pos[new_pos] == seek and !visited.contains(new_pos)) { q.push_back({ new_pos, seek }); }
-                }
+        queue q{ { pos, 0 } };
+        while (q.size()) {
+            const auto &[at, value] = pop(q);
+            if constexpr (part == 1) {
+                if (visited.contains(at)) continue;
+                visited.insert(at);
             }
-            // std::cout << "With a sum of: " << count << "\n";
-            sum += count;
+            if (value == 9) {
+                sum++;
+                continue;
+            }
+
+            int seek = value + 1;
+            for (auto dir : std::vector<position>{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) {
+                position next = at + dir;
+                if (grid[next] == seek) { q.push_back({ next, seek }); }
+            }
         }
         return sum;
+    }
+
+    template <int part = 1>
+    int score() {
+        return std::accumulate(
+                starts.begin(), starts.end(), 0, [&](int acc, position pos) { return acc + bfs<part>(pos); });
     }
 };
 
 int main(int argc, char *argv[]) {
-    std::cout << "This is the result\n";
     top t(std::cin);
     std::cout << "Part1: " << t.score() << "\n";
+    std::cout << "Part1: " << t.score<2>() << "\n";
     return 0;
 }
