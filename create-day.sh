@@ -12,10 +12,13 @@ touch "$1/input.txt"
 touch "$1/instructions.txt"
 
 cat > "$1/main.cc"  <<EOF
+#include <print>
 #include <iostream>
 
+using namespace std;
+
 int main(int argc, char *argv[]) {
-    std::cout << "This is the result\n";
+    print("This is the result\n");
     return 0;
 }
 EOF
