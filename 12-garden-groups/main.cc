@@ -1,6 +1,9 @@
+#include <algorithm>
 #include <deque>
 #include <iostream>
+#include <iterator>
 #include <numeric>
+#include <unordered_set>
 #include <vector>
 
 #include "2dgrid.h"
@@ -15,14 +18,15 @@ position pop(queue_t &q) {
 }
 
 struct region {
-    char ch;
-    int  area, perimiter;
+    char                    ch;
+    int                     perimiter = 0;
+    unordered_set<position> area;
 };
 
 struct garden {
     vector<string> grid;
     vector<region> regions;
-    set            visited;
+    set            regions_search;
 
     garden(istream &is) {
         string s;
@@ -39,6 +43,7 @@ struct garden {
         region  result;
         queue_t q{ in };
         char    c = get(in);
+        result.ch = c;
         while (q.size()) {
             position p     = pop(q);
             char     inner = get(p);
@@ -46,11 +51,11 @@ struct garden {
                 result.perimiter++;
                 continue;
             }
-            visited.insert(p);
-            result.area++;
+            if (result.area.contains(p)) continue;
+            result.area.insert(p);
             for (position dir : vector<position>{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) { q.push_back(p + dir); }
-            cout << "Size of the queue: " << q.size() << "\n";
         }
+        copy(result.area.begin(), result.area.end(), inserter(regions_search, regions_search.begin()));
         return result;
     }
 
@@ -58,16 +63,17 @@ struct garden {
         for (int x = 0; x < grid.size(); ++x) {
             for (int y = 0; y < grid.size(); ++y) {
                 position p{ y, x };
-                if (visited.contains(p)) continue;
-                region r = search(p);
+                if (regions_search.contains(p)) continue;
+                regions.emplace_back(search(p));
             }
         }
     }
 
     int score() {
         solve();
-        return accumulate(
-                regions.begin(), regions.end(), 0, [](int acc, region r) { return acc + (r.area * r.perimiter); });
+        return accumulate(regions.begin(), regions.end(), 0, [](int acc, region r) {
+            return acc + (r.area.size() * r.perimiter);
+        });
     }
 };
 
