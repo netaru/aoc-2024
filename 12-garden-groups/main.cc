@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <bitset>
+#include <cstddef>
 #include <deque>
 #include <iostream>
 #include <iterator>
@@ -17,10 +19,40 @@ position pop(queue_t &q) {
     return p;
 }
 
+using uset = unordered_set<position>;
+
+uset expand(uset input) {
+    uset output;
+    for (position p : input) { output.emplace(p.real() * 2, p.imag() * 2); }
+    return output;
+}
+
+auto corner_directions = vector<position>{ { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } };
 struct region {
-    char                    ch;
-    int                     perimiter = 0;
-    unordered_set<position> area;
+    char ch;
+    int  perimiter = 0;
+    uset area;
+
+    int sides() {
+        uset upscale = expand(area), corners;
+        for (auto u : upscale) {
+            for (position dir : corner_directions) { corners.emplace(u.real() + dir.real(), u.imag() + dir.imag()); }
+        }
+        int sides = 0;
+        for (auto c : corners) {
+            bitset<4> bits, first(0b0110), second(0b1001);
+            for (size_t u = 0; u < corner_directions.size(); ++u) {
+                position dir = c + corner_directions[u];
+                bits[u]      = upscale.contains(dir);
+            }
+            if (bits.count() == 1 or bits.count() == 3) {
+                sides += 1;
+            } else if (bits.count() == 2 and (bits == first or bits == second)) {
+                sides += 2;
+            }
+        }
+        return sides;
+    }
 };
 
 struct garden {
@@ -31,6 +63,7 @@ struct garden {
     garden(istream &is) {
         string s;
         while (getline(is, s)) { grid.push_back(s); }
+        solve();
     }
 
     bool valid(position p) {
@@ -69,16 +102,21 @@ struct garden {
         }
     }
 
-    int score() {
-        solve();
+    int part1() {
         return accumulate(regions.begin(), regions.end(), 0, [](int acc, region r) {
             return acc + (r.area.size() * r.perimiter);
         });
+    }
+
+    int part2() {
+        return accumulate(
+                regions.begin(), regions.end(), 0, [](int acc, region r) { return acc + (r.area.size() * r.sides()); });
     }
 };
 
 int main(int argc, char *argv[]) {
     garden g(cin);
-    cout << "Part1: " << g.score() << "\n";
+    cout << "Part1: " << g.part1() << "\n";
+    cout << "Part2: " << g.part2() << "\n";
     return 0;
 }
