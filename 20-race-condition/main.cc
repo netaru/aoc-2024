@@ -6,15 +6,13 @@
 #include <print>
 #include <tuple>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 using namespace std;
-using pos = complex<int64_t>;
-
+using pos     = complex<int64_t>;
 using path_t  = tuple<pos, size_t>;
-using saves_t = vector<int64_t>;
 using queue_t = deque<path_t>;
+using nodes_t = unordered_map<pos, int64_t>;
 
 template <>
 struct std::hash<pos> {
@@ -29,27 +27,29 @@ auto pop(auto &q) {
     return p;
 }
 
-int64_t get_distance(pos lhs, pos rhs) {
-    int64_t real = abs(lhs.real() - rhs.real());
-    int64_t imag = abs(lhs.imag() - rhs.imag());
-    return real + imag;
+constexpr int64_t get_distance(const pos &lhs, const pos &rhs) {
+    return abs(lhs.real() - rhs.real()) + abs(lhs.imag() - rhs.imag());
 }
 
 struct cpu {
+    nodes_t        nodes;
     vector<string> grid;
     pos            start, end;
-    int64_t        goal;
-
-    unordered_map<pos, int64_t> path;
-    unordered_map<pos, int64_t> distance;
 
     cpu(istream &is) {
-        string s;
-        while (getline(is, s)) { grid.push_back(s); }
-        start = locate('S');
-        end   = locate('E');
+        string  s;
+        int64_t y = 0;
+        while (getline(is, s)) {
+            grid.push_back(s);
+            for (int64_t x = 0; x < s.size(); ++x) {
+                if (s[x] == 'S') start = pos{ x, y };
+                if (s[x] == 'E') end = pos{ x, y };
+            }
+            y++;
+        }
         traverse();
     }
+
     bool valid(pos p) {
         return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
     }
@@ -57,66 +57,36 @@ struct cpu {
 
     void traverse() {
         queue_t q{ { start, 0 } };
-        path.emplace(start, 0);
+        nodes.emplace(start, 0);
         while (q.size()) {
             const auto [current, ms] = pop(q);
             for (pos dir : vector<pos>{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) {
                 pos npos = current + dir;
-                if (path.contains(npos) or get(npos) == '#') continue;
-                path[npos] = ms + 1;
+                if (nodes.contains(npos) or get(npos) == '#') continue;
+                nodes.emplace(npos, ms + 1);
                 q.emplace_back(npos, ms + 1);
             }
         }
-        goal = path[end];
-        for (const auto [key, value] : path) { distance.emplace(key, goal - value); }
     }
 
-    pos locate(char ch) {
-        for (int y = 0; y < grid.size(); ++y) {
-            for (int x = 0; x < grid[0].size(); ++x) {
-                if (grid[y][x] == ch) return { x, y };
-            }
-        }
-        return { 0, 0 };
-    }
-
-    vector<pair<pos, int64_t>> cheat_pos(pos at, int64_t distance) {
-        vector<pair<pos, int64_t>> result;
-        for (const auto [current, cost] : path) {
-            int64_t dist = get_distance(at, current);
-            if (dist <= distance) { result.emplace_back(current, dist); }
-        }
-        return result;
-    }
-
-    saves_t cheat(pos at, int64_t dist) {
-        saves_t better;
-        int64_t current = path[at];
-        for (auto const [npos, dist] : cheat_pos(at, dist)) {
-            int64_t n    = current + distance[npos] + dist;
-            int64_t time = goal - n;
-            if (time > 0) better.push_back(time);
-        }
-        return better;
-    }
-
-    int64_t check(int64_t cutoff, int64_t distance) {
+    int64_t cheat(int64_t cutoff, int64_t max_distance) {
         int64_t score = 0;
-        for (const auto [key, value] : path) {
-            saves_t saves = cheat(key, distance);
-            for (auto s : saves) {
-                if (s >= cutoff) { score++; }
+        for (auto iter1 = nodes.cbegin(), iter2 = iter1; iter1 != nodes.cend(); iter1++, iter2 = iter1) {
+            for (iter2++; iter2 != nodes.cend(); iter2++) {
+                const auto [pos1, cost1] = *iter1;
+                const auto [pos2, cost2] = *iter2;
+
+                int64_t distance = get_distance(pos1, pos2);
+                if (distance <= max_distance and abs(cost1 - cost2) >= cutoff + distance) score++;
             }
         }
         return score;
     }
-
-    int64_t part1() { return check(100, 2); }
 };
 
 int main(int argc, char *argv[]) {
     cpu c(cin);
-    print("Part1: {}\n", c.check(100, 2));
-    print("Part2: {}\n", c.check(100, 20));
+    print("Part1: {}\n", c.cheat(100, 2));
+    print("Part2: {}\n", c.cheat(100, 20));
     return 0;
 }
