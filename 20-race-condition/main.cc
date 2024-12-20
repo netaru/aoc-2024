@@ -1,5 +1,4 @@
 #include <complex>
-#include <cstdint>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -9,15 +8,15 @@
 #include <vector>
 
 using namespace std;
-using pos     = complex<int64_t>;
+using pos     = complex<int>;
 using path_t  = tuple<pos, size_t>;
 using queue_t = deque<path_t>;
-using nodes_t = unordered_map<pos, int64_t>;
+using nodes_t = unordered_map<pos, int>;
 
 template <>
 struct std::hash<pos> {
     std::size_t operator()(const pos &p) const {
-        return std::hash<int64_t>()(p.real()) ^ (std::hash<int64_t>()(p.imag()) << 1);
+        return std::hash<int>()(p.real()) ^ (std::hash<int>()(p.imag()) << 1);
     }
 };
 
@@ -27,7 +26,7 @@ auto pop(auto &q) {
     return p;
 }
 
-constexpr int64_t get_distance(const pos &lhs, const pos &rhs) {
+constexpr int get_distance(const pos &lhs, const pos &rhs) {
     return abs(lhs.real() - rhs.real()) + abs(lhs.imag() - rhs.imag());
 }
 
@@ -37,11 +36,11 @@ struct cpu {
     pos            start, end;
 
     cpu(istream &is) {
-        string  s;
-        int64_t y = 0;
+        string s;
+        int    y = 0;
         while (getline(is, s)) {
             grid.push_back(s);
-            for (int64_t x = 0; x < s.size(); ++x) {
+            for (int x = 0; x < s.size(); ++x) {
                 if (s[x] == 'S') start = pos{ x, y };
                 if (s[x] == 'E') end = pos{ x, y };
             }
@@ -65,28 +64,33 @@ struct cpu {
                 if (nodes.contains(npos) or get(npos) == '#') continue;
                 nodes.emplace(npos, ms + 1);
                 q.emplace_back(npos, ms + 1);
+                break;
             }
         }
     }
 
-    int64_t cheat(int64_t cutoff, int64_t max_distance) {
-        int64_t score = 0;
+    pair<int, int> cheat() {
+        int part1 = 0, part2 = 0;
         for (auto iter1 = nodes.cbegin(), iter2 = iter1; iter1 != nodes.cend(); iter1++, iter2 = iter1) {
             for (iter2++; iter2 != nodes.cend(); iter2++) {
                 const auto [pos1, cost1] = *iter1;
                 const auto [pos2, cost2] = *iter2;
 
-                int64_t distance = get_distance(pos1, pos2);
-                if (distance <= max_distance and abs(cost1 - cost2) >= cutoff + distance) score++;
+                int distance = get_distance(pos1, pos2);
+                if (distance <= 20 and abs(cost1 - cost2) >= 100 + distance) {
+                    part2++;
+                    if (distance <= 2) part1++;
+                }
             }
         }
-        return score;
+        return { part1, part2 };
     }
 };
 
 int main(int argc, char *argv[]) {
     cpu c(cin);
-    print("Part1: {}\n", c.cheat(100, 2));
-    print("Part2: {}\n", c.cheat(100, 20));
+    const auto [part1, part2] = c.cheat();
+    print("Part1: {}\n", part1);
+    print("Part2: {}\n", part2);
     return 0;
 }
