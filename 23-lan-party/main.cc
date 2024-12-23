@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <istream>
@@ -9,21 +8,12 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 using namespace std;
 
-using network_t = set<int>;
-using nodes_t   = unordered_map<int, set<int>>;
-
-template <>
-struct std::hash<network_t> {
-    std::size_t operator()(const network_t &network) const {
-        std::size_t    hash;
-        std::hash<int> hasher;
-        for (int i : network) { hash ^= hasher(i); }
-        return hash;
-    }
-};
+using network_t = vector<int>;
+using nodes_t   = unordered_map<int, network_t>;
 
 struct LAN {
     nodes_t nodes;
@@ -37,9 +27,10 @@ struct LAN {
         string s;
         while (getline(is, s)) {
             int first = id(s.substr(0, 2)), second = id(s.substr(3, 2));
-            nodes[first].insert(second);
-            nodes[second].insert(first);
+            nodes[first].push_back(second);
+            nodes[second].push_back(first);
         }
+        for (auto &[key, value] : nodes) { sort(value.begin(), value.end()); }
         for (const auto node : views::keys(nodes)) { connect(node, { node }); }
     }
 
@@ -47,11 +38,12 @@ struct LAN {
         if (connected.contains(req)) return;
         connected.insert(req);
         for (const auto n : nodes[node]) {
-            if (req.contains(n)) continue;
+            if (binary_search(req.begin(), req.end(), n)) continue;
             network_t nreq;
             set_intersection(req.begin(), req.end(), nodes[n].begin(), nodes[n].end(), inserter(nreq, nreq.begin()));
             if (nreq.size() != req.size()) continue;
-            nreq.insert(n);
+            nreq.push_back(n);
+            sort(nreq.begin(), nreq.end());
             connect(n, nreq);
         }
     }
