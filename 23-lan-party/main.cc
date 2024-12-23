@@ -12,15 +12,15 @@
 
 using namespace std;
 
-using network_t = set<string>;
-using nodes_t   = unordered_map<string, set<string>>;
+using network_t = set<int>;
+using nodes_t   = unordered_map<int, set<int>>;
 
 template <>
 struct std::hash<network_t> {
-    std::size_t operator()(const network_t &ss) const {
-        std::size_t       hash;
-        std::hash<string> hasher;
-        for (string s : ss) { hash = hash ^ hasher(s); }
+    std::size_t operator()(const network_t &network) const {
+        std::size_t    hash;
+        std::hash<int> hasher;
+        for (int i : network) { hash ^= hasher(i); }
         return hash;
     }
 };
@@ -30,17 +30,20 @@ struct LAN {
 
     set<network_t> connected;
 
+    int    id(string s) { return s[0] | s[1] << 8; }
+    string name(int i) { return { char(i & 0xff), char(i >> 8 & 0xff) }; }
+
     LAN(istream &is) {
         string s;
         while (getline(is, s)) {
-            string first = s.substr(0, 2), second = s.substr(3, 2);
+            int first = id(s.substr(0, 2)), second = id(s.substr(3, 2));
             nodes[first].insert(second);
             nodes[second].insert(first);
         }
         for (const auto node : views::keys(nodes)) { connect(node, { node }); }
     }
 
-    void connect(string node, network_t req) {
+    void connect(int node, network_t req) {
         if (connected.contains(req)) return;
         connected.insert(req);
         for (const auto n : nodes[node]) {
@@ -56,7 +59,7 @@ struct LAN {
     uint64_t part1() {
         uint64_t total = 0;
         for (auto s : connected) {
-            if (s.size() == 3 and any_of(s.begin(), s.end(), [](string_view sv) { return sv[0] == 't'; })) total += 1;
+            if (s.size() == 3 and any_of(s.begin(), s.end(), [&](int i) { return name(i)[0] == 't'; })) total += 1;
         }
         return total;
     }
@@ -67,9 +70,9 @@ struct LAN {
         });
         bool   added = false;
         string result;
-        for (auto s : *max) {
+        for (auto i : *max) {
             if (added) result += ",";
-            result += s;
+            result += name(i);
             added = true;
         }
         return result;
