@@ -12,7 +12,7 @@
 
 using namespace std;
 
-using network_t = vector<int>;
+using network_t = set<int>;
 using nodes_t   = unordered_map<int, network_t>;
 
 struct LAN {
@@ -24,47 +24,72 @@ struct LAN {
     string name(int i) { return { char(i & 0xff), char(i >> 8 & 0xff) }; }
 
     LAN(istream &is) {
-        string s;
+        string   s;
+        set<int> keys;
         while (getline(is, s)) {
             int first = id(s.substr(0, 2)), second = id(s.substr(3, 2));
-            nodes[first].push_back(second);
-            nodes[second].push_back(first);
+            nodes[first].insert(second);
+            nodes[second].insert(first);
+            keys.insert(first);
+            keys.insert(second);
         }
-        for (auto &[key, value] : nodes) { sort(value.begin(), value.end()); }
-        for (const auto node : views::keys(nodes)) { connect(node, { node }); }
+        bkb({}, keys, {});
     }
 
-    void connect(int node, network_t req) {
-        if (connected.contains(req)) return;
-        connected.insert(req);
-        for (const auto n : nodes[node]) {
-            if (binary_search(req.begin(), req.end(), n)) continue;
-            network_t nreq;
-            set_intersection(req.begin(), req.end(), nodes[n].begin(), nodes[n].end(), inserter(nreq, nreq.begin()));
-            if (nreq.size() != req.size()) continue;
-            nreq.push_back(n);
-            sort(nreq.begin(), nreq.end());
-            connect(n, nreq);
+    void bkb(set<int> R, set<int> P, set<int> X) {
+        if (P.empty() and X.empty()) {
+            connected.insert(R);
+        } else {
+            set<int> nn;
+            if (!P.empty()) {
+                auto &v = nodes[*P.begin()];
+                set_difference(P.cbegin(), P.cend(), v.cbegin(), v.cend(), inserter(nn, nn.begin()));
+            }
+
+            for (int i : nn) {
+                R.insert(i);
+                auto    &v = nodes[i];
+                set<int> newP;
+                set_intersection(P.begin(), P.end(), v.begin(), v.end(), inserter(newP, newP.begin()));
+                set<int> newX;
+                set_intersection(X.begin(), X.end(), v.begin(), v.end(), inserter(newX, newX.begin()));
+                bkb(R, newP, newX);
+
+                R.erase(i);
+                P.erase(i);
+                X.insert(i);
+            }
         }
     }
 
     uint64_t part1() {
-        uint64_t total = 0;
-        for (auto s : connected) {
-            if (s.size() == 3 and any_of(s.begin(), s.end(), [&](int i) { return name(i)[0] == 't'; })) total += 1;
+        set<set<int>> p1;
+        for (auto x : views::keys(nodes)) {
+            for (auto y : nodes[x]) {
+                for (auto z : nodes[y]) {
+                    if (z != x and nodes[z].contains(x)) p1.insert({ x, y, z });
+                }
+            }
         }
-        return total;
+        return count_if(p1.begin(), p1.end(), [&](set<int> s) {
+            return any_of(s.begin(), s.end(), [&](int i) { return name(i)[0] == 't'; });
+        });
     }
 
     string part2() {
-        auto   max   = max_element(connected.begin(), connected.end(), [](network_t lhs, network_t rhs) {
+        auto max = max_element(connected.begin(), connected.end(), [](network_t lhs, network_t rhs) {
             return lhs.size() < rhs.size();
         });
+
+        vector<string> vec;
+        for (auto i : *max) { vec.push_back(name(i)); }
+
         bool   added = false;
         string result;
-        for (auto i : *max) {
+        sort(vec.begin(), vec.end());
+        for (auto s : vec) {
             if (added) result += ",";
-            result += name(i);
+            result += s;
             added = true;
         }
         return result;
