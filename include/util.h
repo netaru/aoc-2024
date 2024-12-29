@@ -5,6 +5,7 @@
 #include <charconv>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <iterator>
 #include <print>
 #include <string>
@@ -35,14 +36,12 @@ std::vector<T> ints(std::string sv) {
     return result;
 }
 
-inline std::string_view ltrim(std::string_view sv) {
-    auto lhs = std::find_if(sv.begin(), sv.end(), [](char c) { return !std::isspace(c); });
-    return sv.substr(lhs - sv.begin());
+inline std::string_view ltrim(std::string_view sv, std::function<int(int)> fn = ::isspace) {
+    return sv.substr(std::find_if_not(sv.begin(), sv.end(), fn) - sv.begin());
 }
 
-inline std::string_view rtrim(std::string_view sv) {
-    auto rhs = std::find_if(sv.rbegin(), sv.rend(), [](char c) { return !std::isspace(c); });
-    return sv.substr(0, sv.size() - (rhs - sv.rbegin()));
+inline std::string_view rtrim(std::string_view sv, std::function<int(int)> fn = ::isspace) {
+    return sv.substr(0, sv.size() - (std::find_if_not(sv.rbegin(), sv.rend(), fn) - sv.rbegin()));
 }
 
 inline std::string_view trim(std::string_view sv) { return rtrim(ltrim(sv)); }
