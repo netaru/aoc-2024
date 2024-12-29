@@ -7,6 +7,7 @@
 #include <functional>
 #include <iterator>
 #include <print>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -44,20 +45,17 @@ inline std::string_view trim(std::string_view sv) { return rtrim(ltrim(sv)); }
 template <typename T = std::string>
 std::vector<T> split(std::string_view sv, std::string_view delimiter = " ") {
     std::vector<T> result;
-    while (true) {
-        size_t           where = sv.find(delimiter);
-        std::string_view part  = trim({ sv.substr(0, where) });
-        if (part.size()) {
+    for (const auto word : std::views::split(sv, delimiter)) {
+        std::string_view view = trim(std::string_view{ word });
+        if (view.size()) {
             if constexpr (std::is_same_v<T, std::string>) {
-                result.emplace_back(part);
+                result.emplace_back(view);
             } else {
-                if (T value; std::from_chars(part.data(), part.data() + part.size(), value).ec == std::errc{}) {
+                if (T value; std::from_chars(view.data(), view.data() + view.size(), value).ec == std::errc{}) {
                     result.push_back(value);
                 }
             }
         }
-        if (where == std::string_view::npos) break;
-        sv = sv.substr(where + delimiter.size());
     }
     return result;
 }
