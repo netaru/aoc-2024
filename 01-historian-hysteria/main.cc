@@ -1,53 +1,40 @@
 #include <algorithm>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <numeric>
-#include <string>
-#include <unordered_map>
-#include <utility>
+#include <ranges>
 #include <vector>
 
-using pairs = std::vector<std::pair<int, int>>;
-using freq  = std::unordered_map<int, int>;
+using namespace std;
 
-pairs get_pairs(std::vector<int> left, std::vector<int> right) {
-    pairs pairs;
-    std::sort(left.begin(), left.end());
-    std::sort(right.begin(), right.end());
-    for (int i = 0; i < left.size(); ++i) { pairs.push_back({ left[i], right[i] }); }
-    return pairs;
+int part1(const vector<int> &left, const vector<int> &right) {
+    return ranges::fold_left(
+            views::zip_transform([](int l, int r) { return abs(l - r); }, left, right), 0, plus<int>());
 }
 
-int part1(std::vector<int> left, std::vector<int> right) {
-    pairs p = get_pairs(left, right);
-    return std::accumulate(p.begin(), p.end(), 0, [](int acc, std::pair<int, int> pair) {
-        return std::abs(pair.first - pair.second) + acc;
+int part2(const vector<int> &left, const vector<int> &right) {
+    auto f = accumulate(right.begin(), right.end(), map<int, int>{}, [](auto acc, int value) {
+        acc[value]++;
+        return acc;
     });
+    return ranges::fold_left(views::transform(left, [&](int v) { return v * f[v]; }), 0, plus<int>());
 }
 
-freq get_freq(std::vector<int> v) {
-    freq result;
-    std::for_each(v.begin(), v.end(), [&result](int value) { result[value]++; });
-    return result;
-}
-
-int part2(std::vector<int> left, std::vector<int> right) {
-    freq f = get_freq(right);
-    return std::accumulate(left.begin(), left.end(), 0, [&f](int acc, int value) { return (value * f[value]) + acc; });
-}
-
-void parse(std::vector<int> &left, std::vector<int> &right) {
+void parse(vector<int> &left, vector<int> &right) {
     int first, second;
-    std::string s;
-    while (std::cin >> first >> second) {
+    while (cin >> first >> second) {
         left.push_back(first);
         right.push_back(second);
     }
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
 }
 
 int main(int argc, char *argv[]) {
-    std::vector<int> left, right;
+    vector<int> left, right;
     parse(left, right);
-    std::cout << "Part1: " << part1(left, right) << "\n";
-    std::cout << "Part2: " << part2(left, right) << "\n";
+    cout << "Part1: " << part1(left, right) << "\n";
+    cout << "Part2: " << part2(left, right) << "\n";
     return 0;
 }
