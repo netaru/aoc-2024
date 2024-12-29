@@ -50,20 +50,8 @@ template <typename T = std::string>
 std::vector<T> split(std::string_view sv, std::string_view delimiter = " ") {
     std::vector<T> result;
     while (true) {
-        size_t where = sv.find(delimiter);
-        if (where == std::string::npos) {
-            sv = trim(sv);
-            if (!sv.size()) break;
-            if constexpr (std::is_same_v<T, std::string>) {
-                result.emplace_back(sv);
-            } else {
-                if (T value; std::from_chars(sv.data(), sv.data() + sv.size(), value).ec == std::errc{}) {
-                    result.push_back(value);
-                }
-            }
-            break;
-        }
-        std::string_view part = trim({ sv.substr(0, where) });
+        size_t           where = sv.find(delimiter);
+        std::string_view part  = trim({ sv.substr(0, where) });
         if (part.size()) {
             if constexpr (std::is_same_v<T, std::string>) {
                 result.emplace_back(part);
@@ -73,6 +61,7 @@ std::vector<T> split(std::string_view sv, std::string_view delimiter = " ") {
                 }
             }
         }
+        if (where == std::string_view::npos) break;
         sv = sv.substr(where + delimiter.size());
     }
     return result;
