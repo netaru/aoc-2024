@@ -18,7 +18,7 @@
 template <typename T = char>
 auto read(std::istream &is) {
     if constexpr (std::is_same_v<T, char>) {
-        return std::string{ std::istream_iterator<T>(is), {} };
+        return std::string{ std::istreambuf_iterator<T>(is), {} };
     } else {
         return std::vector<T>{ std::istream_iterator<T>(is), {} };
     }
@@ -35,10 +35,16 @@ template <typename T = int>
 std::vector<T> ints(std::string_view sv) {
     std::vector<T> result;
 
+    std::function<int(int)> end_func = isdigit;
+
+    if constexpr (std::is_same_v<T, double> or std::is_same_v<T, float>) {
+        end_func = [](int ch) -> int { return isdigit(ch) or (char) ch == '.'; };
+    }
+
     size_t ind = 0;
     while (true) {
         auto iter = std::find_if(sv.begin() + ind, sv.end(), isdigit);
-        auto end  = std::find_if_not(iter, sv.end(), isdigit);
+        auto end  = std::find_if_not(iter, sv.end(), end_func);
         if (iter == sv.end()) break;
         if (iter != sv.begin() and *(iter - 1) == '-') { iter--; }
         std::string_view digits = sv.substr(iter - sv.begin(), end - iter);
