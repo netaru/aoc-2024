@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -83,7 +84,8 @@ struct lab {
 
     int part2() {
         uniq.erase(uniq.find(start));
-        return std::count_if(uniq.begin(), uniq.end(), [&](position block) { return is_stuck(block); });
+        auto fn = std::bind(std::mem_fn(&lab::is_stuck), this, std::placeholders::_1);
+        return std::count_if(uniq.begin(), uniq.end(), fn);
     }
 };
 
