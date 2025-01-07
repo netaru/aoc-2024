@@ -23,19 +23,13 @@ struct printer {
         for (const auto &s : split(input[1], "\n")) { pages.push_back(split<int>(s, ",")); }
     }
 
-    bool is_sorted(const auto &p) const { return std::is_sorted(p.begin(), p.end(), comp); }
-    auto sort(auto p) {
-        std::sort(p.begin(), p.end(), comp);
-        return p;
-    }
-
     template <int part>
     int solve() {
         function<int(span<int>)> fn;
         if constexpr (part == 1)
-            fn = [&](auto p) { return is_sorted(p) ? middle(p) : 0; };
+            fn = [&](auto p) { return ranges::is_sorted(p, comp) ? middle(p) : 0; };
         else
-            fn = [&](auto p) { return is_sorted(p) ? 0 : middle(sort(p)); };
+            fn = [&](auto p) { return ranges::is_sorted(p, comp) ? 0 : middle(dave::sort(p, comp)); };
         return transform_reduce(pages.begin(), pages.end(), 0, plus(), fn);
     }
 };

@@ -106,3 +106,10 @@ template <typename T>
 std::string join(const T &values, std::string_view delimiter = " ") {
     return join(values.cbegin(), values.cend(), delimiter);
 }
+
+namespace dave {
+auto sort(auto &c, auto comp = std::less()) {
+    std::sort(c.begin(), c.end(), comp);
+    return c;
+}
+};
