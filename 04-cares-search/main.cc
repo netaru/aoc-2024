@@ -1,64 +1,36 @@
 #include <algorithm>
 #include <complex>
+#include <functional>
 #include <iostream>
 #include <numeric>
-#include <string>
 #include <vector>
 
-using position = std::complex<int64_t>;
+#include "util.h"
 
-std::string sort(std::string s) {
-    std::sort(s.begin(), s.end());
-    return s;
-}
+using namespace std;
 
 struct station {
-    std::vector<std::string> grid;
-    std::vector<position>    as, xs,
-            dirs{ { -1, -1 }, { 1, 1 }, { 1, -1 }, { -1, 1 }, { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+    plane       p;
+    vector<pos> as, xs;
 
-    station(std::istream &is) {
-        std::string s;
-        for (int i = 0; std::getline(is, s); ++i) {
-            grid.push_back(s);
-            for (int j = 0; j < s.size(); ++j) {
-                if (s[j] == 'A') { as.push_back({ i, j }); }
-                if (s[j] == 'X') { xs.push_back({ i, j }); }
-            }
-        }
-    }
-
-    bool valid(position p) {
-        return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
-    }
-
-    char get(position p) { return valid(p) ? grid[p.real()][p.imag()] : '-'; }
-
-    std::string slice(position from, position delta, size_t sz) {
-        std::string s;
-        for (int i = 0; i < sz; ++i, from += delta) { s += get(from); }
-        return s;
-    }
+    station(istream &is) : p(is), as(p.locate('A')), xs(p.locate('X')) {}
 
     int part1() {
-        return std::accumulate(xs.begin(), xs.end(), 0, [this](int acc, position p) {
-            return acc + std::count_if(dirs.begin(), dirs.end(), [&](position delta) {
-                       return slice(p, delta, 4) == "XMAS";
-                   });
+        return transform_reduce(xs.begin(), xs.end(), 0, plus(), [this](pos where) {
+            return count_if(
+                    compass.begin(), compass.end(), [&](pos delta) { return p.slice(where, delta, 4) == "XMAS"; });
         });
     }
 
-    bool isAMS(position p, position delta) { return sort(slice(p, delta, 3)) == "AMS"; }
+    bool isAMS(pos where, pos delta) { return dave::sort(p.slice(where, delta, 3)) == "AMS"; }
     int  part2() {
-        return std::count_if(as.begin(), as.end(), [&](position p) {
-            return isAMS(p + dirs[0], dirs[1]) and isAMS(p + dirs[2], dirs[3]);
-        });
+        return count_if(as.begin(), as.end(), [&](pos p) { return isAMS(p + NE, SW) and isAMS(p + NW, SE); });
     }
 };
 
 int main(int argc, char *argv[]) {
-    station station(std::cin);
-    std::cout << "Part1: " << station.part1() << "\n";
-    std::cout << "Part2: " << station.part2() << "\n";
+    station station(cin);
+    cout << "Part1: " << station.part1() << "\n";
+    cout << "Part2: " << station.part2() << "\n";
     return 0;
 }

@@ -124,6 +124,19 @@ using pos      = std::complex<i64>;
 using history  = std::unordered_set<pos>;
 using dhistory = std::unordered_set<std::pair<pos, pos>>;
 
+const pos                N{ 0, -1 }, E{ 1, 0 }, S{ 0, 1 }, W{ -1, 0 };
+const pos                NE{ 1, -1 }, NW{ -1, -1 }, SW{ -1, 1 }, SE{ 1, 1 };
+const std::array<pos, 4> cardinal{ N, E, S, W };
+const std::array<pos, 4> ordinal{ NE, NW, SW, SE };
+
+constexpr std::vector<pos> concat_dirs() {
+    std::vector<pos> result;
+    result.insert(result.end(), cardinal.begin(), cardinal.end());
+    result.insert(result.end(), ordinal.begin(), ordinal.end());
+    return result;
+}
+const std::vector compass = concat_dirs();
+
 template <>
 struct std::hash<pos> {
     std::size_t operator()(const pos &p) const {
@@ -157,6 +170,12 @@ struct plane {
 
     void set(pos p, char c) { data[p.imag()][p.real()] = c; }
 
+    std::string slice(pos p, pos d, size_t sz) {
+        std::string s;
+        for (int i = 0; i < sz; ++i, p += d) { s += get(p).value_or('-'); }
+        return s;
+    }
+
     std::vector<pos> locate(char ch) {
         std::vector<pos> result;
         for (i64 y = 0; y < data.size(); ++y) {
@@ -175,6 +194,13 @@ struct plane {
 };
 
 namespace dave {
+
+template <typename T>
+T sort(T c) {
+    std::sort(c.begin(), c.end());
+    return c;
+}
+
 auto sort(auto &c, auto comp = std::less()) {
     std::sort(c.begin(), c.end(), comp);
     return c;
