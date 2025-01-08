@@ -3,17 +3,20 @@
 #include <algorithm>
 #include <cctype>
 #include <charconv>
+#include <complex>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <istream>
 #include <iterator>
+#include <optional>
 #include <print>
 #include <ranges>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <type_traits>
+#include <unordered_set>
 #include <vector>
 
 using u8  = uint8_t;
@@ -116,6 +119,58 @@ template <typename T>
 std::string join(const T &values, std::string_view delimiter = " ") {
     return join(values.cbegin(), values.cend(), delimiter);
 }
+
+using pos      = std::complex<i64>;
+using history  = std::unordered_set<pos>;
+using dhistory = std::unordered_set<std::pair<pos, pos>>;
+
+template <>
+struct std::hash<pos> {
+    std::size_t operator()(const pos &p) const {
+        return std::hash<i64>()(p.real()) ^ (std::hash<i64>()(p.imag()) << 1);
+    }
+};
+
+template <>
+struct std::hash<std::pair<pos, pos>> {
+    std::size_t operator()(const std::pair<pos, pos> &v) const {
+        return std::hash<int64_t>()(v.first.real()) ^ (std::hash<int64_t>()(v.first.imag()) << 1) ^
+               std::hash<int64_t>()(v.second.real() << 2) ^ (std::hash<int64_t>()(v.second.imag()) << 3);
+    }
+};
+
+struct plane {
+    std::vector<std::string> data;
+
+    plane(std::istream &is) { std::ranges::copy(read_lines(is), std::back_inserter(data)); }
+
+    bool valid(pos p) const {
+        return p.real() >= 0 and p.real() < data.size() and p.imag() >= 0 and p.imag() < data.front().size();
+    }
+
+    std::optional<char> get(pos p) const {
+        if (valid(p)) return data[p.imag()][p.real()];
+        return {};
+    }
+
+    void set(pos p, char c) { data[p.imag()][p.real()] = c; }
+
+    std::vector<pos> locate(char ch) {
+        std::vector<pos> result;
+        for (i64 y = 0; y < data.size(); ++y) {
+            for (i64 x = 0; x < data[y].size(); ++x) {
+                if (auto p = pos{ x, y }; get(p).has_value() and get(p).value() == ch) result.push_back(pos{ x, y });
+            }
+        }
+        return result;
+    }
+
+    std::string as_string() {
+        std::ostringstream oss;
+        std::ranges::copy(data, std::ostream_iterator<std::string>(oss, "\n"));
+        return oss.str();
+    }
+};
 
 namespace dave {
 auto sort(auto &c, auto comp = std::less()) {
