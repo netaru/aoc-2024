@@ -3,7 +3,6 @@
 #include <iostream>
 #include <print>
 #include <utility>
-#include <vector>
 
 #include "util.h"
 
@@ -15,7 +14,7 @@ struct lab {
     dhistory visited;
     history  hist;
 
-    lab(istream& is) : p(is), start(p.locate('^').front()), where(start), delta(0, -1) { hist.insert(where); }
+    lab(istream& is) : p(is), start(*p.locate('^').begin()), where(start), delta(0, -1) { hist.insert(where); }
 
     template <int part>
     bool update_direction() {

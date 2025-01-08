@@ -12,6 +12,7 @@
 #include <optional>
 #include <print>
 #include <ranges>
+#include <set>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -172,21 +173,35 @@ struct plane {
     }
 
     void set(pos p, char c) { data[p.imag()][p.real()] = c; }
+    void set(std::unordered_set<pos> ps, char c) {
+        std::ranges::for_each(ps, [&](pos p) { set(p, c); });
+    }
 
-    std::string slice(pos p, pos d, size_t sz) const {
+    std::string slice(pos p, pos d, size_t sz, char fill = '-') const {
         std::string s;
-        for (int i = 0; i < sz; ++i, p += d) { s += get(p).value_or('-'); }
+        for (int i = 0; i < sz; ++i, p += d) { s += get(p).value_or(fill); }
         return s;
     }
 
-    std::vector<pos> locate(char ch) {
-        std::vector<pos> result;
+    std::unordered_set<pos> locate(char ch) {
+        std::unordered_set<pos> result;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
-                if (auto p = pos{ x, y }; get(p).has_value() and get(p).value() == ch) result.push_back(p);
+                if (auto p = pos{ x, y }; get(p).value() == ch) result.insert(p);
             }
         }
         return result;
+    }
+
+    std::unordered_set<char> chars() {
+        std::unordered_set<char> cs;
+        for (i64 y = 0; y < data.size(); ++y) {
+            for (i64 x = 0; x < data[y].size(); ++x) {
+                auto p = pos{ x, y };
+                cs.insert(get(p).value());
+            }
+        }
+        return cs;
     }
 
     std::string as_string() {
