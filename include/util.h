@@ -143,9 +143,11 @@ struct plane {
     std::vector<std::string> data;
 
     plane(std::istream &is) { std::ranges::copy(read_lines(is), std::back_inserter(data)); }
+    plane(std::string_view s) { std::ranges::copy(split(s, "\n"), std::back_inserter(data)); }
+    plane(size_t x, size_t y, char ch) : data(y, std::string(x, ch)) {}
 
     bool valid(pos p) const {
-        return p.real() >= 0 and p.real() < data.size() and p.imag() >= 0 and p.imag() < data.front().size();
+        return p.real() >= 0 and p.real() < data.size() and p.imag() >= 0 and p.imag() < data[p.real()].size();
     }
 
     std::optional<char> get(pos p) const {
@@ -159,7 +161,7 @@ struct plane {
         std::vector<pos> result;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
-                if (auto p = pos{ x, y }; get(p).has_value() and get(p).value() == ch) result.push_back(pos{ x, y });
+                if (auto p = pos{ x, y }; get(p).has_value() and get(p).value() == ch) result.push_back(p);
             }
         }
         return result;
