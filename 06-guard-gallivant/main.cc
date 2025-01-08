@@ -1,22 +1,25 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <ostream>
+#include <print>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "2dgrid.h"
 
-struct lab {
-    int                      direction = 0;
-    position                 where, start;
-    std::vector<position>    paths{ { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
-    std::vector<std::string> grid;
-    visit_history            visited;
-    history                  uniq;
+using namespace std;
 
-    lab(std::istream& is) {
-        std::string s;
-        for (int i = 0; std::getline(is, s); ++i) {
+struct lab {
+    position       where, start, delta;
+    vector<string> grid;
+    visit_history  visited;
+    history        uniq;
+
+    lab(istream& is) : delta(-1, 0) {
+        string s;
+        for (int i = 0; getline(is, s); ++i) {
             for (int j = 0; j < s.size(); ++j) {
                 if (s[j] == '^') {
                     where = start = { i, j };
@@ -27,71 +30,55 @@ struct lab {
         }
     }
 
-    bool valid(position p) {
+    bool valid(position p) const {
         return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
     }
 
-    char get(position p) { return valid(p) ? grid[p.real()][p.imag()] : '-'; }
+    char get(position p) const { return valid(p) ? grid[p.real()][p.imag()] : '-'; }
     void set(position p, char c) { grid[p.real()][p.imag()] = c; }
-    char peek() { return get(where + paths[direction]); }
+    char peek() const { return get(where + delta); }
 
     template <int part>
     bool update_direction() {
-        if constexpr (part == 1) {
-            direction = (direction + 1) % paths.size();
-            return true;
-        }
-        if (visit v{ where, paths[direction] }; !visited.contains(v)) {
-            visited.insert(v);
-            direction = (direction + 1) % paths.size();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    template <int part>
-    void walk() {
-        where += paths[direction];
-        if constexpr (part == 1) {
-            if (valid(where)) { uniq.insert(where); }
-        }
+        delta = position{ delta.imag(), -delta.real() };
+        if constexpr (part == 1) { return true; }
+        return visited.insert({ where, delta }).second;
     }
 
     template <int part = 1>
-    void traverse() {
-        while (valid(where)) {
-            while (peek() == '#')
-                if (!update_direction<part>()) return;
-            walk<part>();
+    auto walk() {
+        bool run = true;
+        while (valid(where) and run) {
+            if constexpr (part == 1)
+                if (valid(where)) { uniq.insert(where); }
+            if (peek() == '#')
+                run = update_direction<part>();
+            else
+                where += delta;
         }
+        if constexpr (part == 1) { return uniq.size(); }
     }
 
     bool is_stuck(position block) {
         where = start;
+        delta = position{ -1, 0 };
         visited.clear();
-        direction = 0;
         set(block, '#');
-        traverse<2>();
+        walk<2>();
         set(block, '.');
         return valid(where);
     }
 
-    int part1() {
-        traverse();
-        return uniq.size();
-    }
-
-    int part2() {
+    int cycles() {
         uniq.erase(uniq.find(start));
-        auto fn = std::bind(std::mem_fn(&lab::is_stuck), this, std::placeholders::_1);
-        return std::count_if(uniq.begin(), uniq.end(), fn);
+        auto fn = bind(mem_fn(&lab::is_stuck), this, placeholders::_1);
+        return count_if(uniq.begin(), uniq.end(), fn);
     }
 };
 
 int main(int argc, char* argv[]) {
-    lab l(std::cin);
-    std::cout << "Part1: " << l.part1() << "\n";
-    std::cout << "Part2: " << l.part2() << "\n";
+    lab l(cin);
+    cout << "Part1: " << l.walk() << "\n";
+    cout << "Part2: " << l.cycles() << "\n";
     return 0;
 }
