@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     auto  fn1 = [&](pos where) {
         return count_if(compass.begin(), compass.end(), [&](pos delta) { return p.slice(where, delta, 4) == "XMAS"; });
     };
-    auto fn2 = [&](pos where) { return isAMS(p, where + NE, SW) and isAMS(p, where + NW, SE); };
+    auto fn2 = [&](pos where) { return isAMS(p, where + dave::NE, dave::SW) and isAMS(p, where + dave::NW, dave::SE); };
     auto xs = p.locate('X'), as = p.locate('A');
     println("Part1: {}", transform_reduce(xs.begin(), xs.end(), 0, plus(), fn1));
     println("Part2: {}", count_if(as.begin(), as.end(), fn2));

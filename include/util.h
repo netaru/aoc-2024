@@ -124,10 +124,13 @@ using pos      = std::complex<i64>;
 using history  = std::unordered_set<pos>;
 using dhistory = std::unordered_set<std::pair<pos, pos>>;
 
-const pos                N{ 0, -1 }, E{ 1, 0 }, S{ 0, 1 }, W{ -1, 0 };
-const pos                NE{ 1, -1 }, NW{ -1, -1 }, SW{ -1, 1 }, SE{ 1, 1 };
-const std::array<pos, 4> cardinal{ N, E, S, W };
-const std::array<pos, 4> ordinal{ NE, NW, SW, SE };
+namespace dave {
+const pos N{ 0, -1 }, E{ 1, 0 }, S{ 0, 1 }, W{ -1, 0 };
+const pos NE{ 1, -1 }, NW{ -1, -1 }, SW{ -1, 1 }, SE{ 1, 1 };
+};
+
+const std::array<pos, 4> cardinal{ dave::N, dave::E, dave::S, dave::W };
+const std::array<pos, 4> ordinal{ dave::NE, dave::NW, dave::SW, dave::SE };
 
 constexpr std::vector<pos> concat_dirs() {
     std::vector<pos> result;
@@ -135,7 +138,7 @@ constexpr std::vector<pos> concat_dirs() {
     result.insert(result.end(), ordinal.begin(), ordinal.end());
     return result;
 }
-const std::vector compass = concat_dirs();
+const std::vector<pos> compass = concat_dirs();
 
 template <>
 struct std::hash<pos> {
