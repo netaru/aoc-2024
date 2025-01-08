@@ -29,7 +29,7 @@ struct lab {
         while (p.valid(where) and run) {
             if constexpr (part == 1)
                 if (p.valid(where)) { hist.insert(where); }
-            if (p.get(where + delta).value_or('-') == '#')
+            if (p.get(where + delta) == '#')
                 run = update_direction<part>();
             else
                 where += delta;
