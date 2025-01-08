@@ -170,7 +170,7 @@ struct plane {
 
     void set(pos p, char c) { data[p.imag()][p.real()] = c; }
 
-    std::string slice(pos p, pos d, size_t sz) {
+    std::string slice(pos p, pos d, size_t sz) const {
         std::string s;
         for (int i = 0; i < sz; ++i, p += d) { s += get(p).value_or('-'); }
         return s;

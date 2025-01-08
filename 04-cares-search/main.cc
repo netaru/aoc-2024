@@ -9,28 +9,16 @@
 
 using namespace std;
 
-struct station {
-    plane       p;
-    vector<pos> as, xs;
-
-    station(istream &is) : p(is), as(p.locate('A')), xs(p.locate('X')) {}
-
-    int part1() {
-        return transform_reduce(xs.begin(), xs.end(), 0, plus(), [this](pos where) {
-            return count_if(
-                    compass.begin(), compass.end(), [&](pos delta) { return p.slice(where, delta, 4) == "XMAS"; });
-        });
-    }
-
-    bool isAMS(pos where, pos delta) { return dave::sort(p.slice(where, delta, 3)) == "AMS"; }
-    int  part2() {
-        return count_if(as.begin(), as.end(), [&](pos p) { return isAMS(p + NE, SW) and isAMS(p + NW, SE); });
-    }
-};
+bool isAMS(const plane &p, pos where, pos delta) { return dave::sort(p.slice(where, delta, 3)) == "AMS"; }
 
 int main(int argc, char *argv[]) {
-    station station(cin);
-    cout << "Part1: " << station.part1() << "\n";
-    cout << "Part2: " << station.part2() << "\n";
+    plane p(cin);
+    auto  fn1 = [&](pos where) {
+        return count_if(compass.begin(), compass.end(), [&](pos delta) { return p.slice(where, delta, 4) == "XMAS"; });
+    };
+    auto fn2 = [&](pos where) { return isAMS(p, where + NE, SW) and isAMS(p, where + NW, SE); };
+    auto xs = p.locate('X'), as = p.locate('A');
+    println("Part1: {}", transform_reduce(xs.begin(), xs.end(), 0, plus(), fn1));
+    println("Part2: {}", count_if(as.begin(), as.end(), fn2));
     return 0;
 }
