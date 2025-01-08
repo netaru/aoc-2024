@@ -1,6 +1,6 @@
 #include <deque>
+#include <functional>
 #include <iostream>
-#include <istream>
 #include <numeric>
 #include <print>
 #include <utility>
@@ -9,46 +9,37 @@
 
 using namespace std;
 
-using queue = deque<pair<pos, char>>;
-
-struct top {
-    plane p;
-    poses starts;
-
-    top(istream &is) : p(is), starts(p.find('0')) {}
-
-    template <int part>
-    int bfs(pos where) {
-        int     sum = 0;
-        history visited;
-
-        queue q{ { where, '0' } };
-        while (q.size()) {
-            const auto &[at, value] = pop(q);
-            if constexpr (part == 1) {
-                if (const auto [iter, inserted] = visited.insert(at); !inserted) continue;
-            }
-            if (value == '9') {
-                sum++;
-                continue;
-            }
-
-            char seek = value + 1;
-            for (auto dir : cardinal)
-                if (pos next = at + dir; p.get(next) == seek) { q.push_back({ next, seek }); }
+template <int part>
+int bfs(const plane &p, pos where) {
+    int     sum = 0;
+    history visited;
+    for (deque<pair<pos, char>> q{ { where, '0' } }; !q.empty(); q.pop_front()) {
+        const auto &[at, value] = q.front();
+        if constexpr (part == 1) {
+            if (const auto [iter, inserted] = visited.insert(at); !inserted) continue;
         }
-        return sum;
-    }
+        if (value == '9') {
+            sum++;
+            continue;
+        }
 
-    template <int part>
-    int score() {
-        return transform_reduce(starts.begin(), starts.end(), 0, plus(), [&](pos p) { return bfs<part>(p); });
+        char seek = value + 1;
+        for (auto dir : cardinal)
+            if (pos next = at + dir; p.get(next) == seek) { q.push_back({ next, seek }); }
     }
-};
+    return sum;
+}
+
+template <int part>
+int score(const plane &p, const poses &zeros) {
+    auto fn = bind(bfs<part>, p, placeholders::_1);
+    return transform_reduce(zeros.begin(), zeros.end(), 0, plus(), fn);
+}
 
 int main(int argc, char *argv[]) {
-    top t(cin);
-    println("Part1: {}", t.score<1>());
-    println("Part2: {}", t.score<2>());
+    plane p(cin);
+    auto  zeroes = p.find('0');
+    println("Part1: {}", score<1>(p, zeroes));
+    println("Part2: {}", score<2>(p, zeroes));
     return 0;
 }

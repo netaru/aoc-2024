@@ -189,7 +189,7 @@ struct plane {
         poses result;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
-                if (auto p = pos{ x, y }; get(p).value() == ch) result.insert(p);
+                if (auto p = pos{ x, y }; get(p) == ch) result.insert(p);
             }
         }
         return result;
