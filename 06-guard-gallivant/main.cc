@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <functional>
 #include <iostream>
 #include <print>
 #include <utility>
@@ -49,7 +48,7 @@ struct lab {
 
     int cycles() {
         hist.erase(hist.find(start));
-        auto fn = bind(mem_fn(&lab::is_stuck), this, placeholders::_1);
+        auto fn = [&](pos block) { return is_stuck(block); };
         return count_if(hist.begin(), hist.end(), fn);
     }
 };

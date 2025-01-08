@@ -32,7 +32,7 @@ int bfs(const plane &p, pos where) {
 
 template <int part>
 int score(const plane &p, const poses &zeros) {
-    auto fn = bind(bfs<part>, p, placeholders::_1);
+    auto fn = [&](pos ps) { return bfs<part>(p, ps); };
     return transform_reduce(zeros.begin(), zeros.end(), 0, plus(), fn);
 }
 
