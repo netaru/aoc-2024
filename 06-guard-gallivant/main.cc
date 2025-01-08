@@ -15,23 +15,18 @@ struct lab {
 
     lab(istream& is) : p(is), start(*p.find('^').begin()), where(start), delta(0, -1) { hist.insert(where); }
 
-    template <int part>
-    bool update_direction() {
-        delta = pos{ -delta.imag(), delta.real() };
-        if constexpr (part == 1) { return true; }
-        return visited.insert({ where, delta }).second;
-    }
-
     template <int part = 1>
     auto walk() {
-        bool run = true;
-        while (p.valid(where) and run) {
+        while (p.valid(where)) {
             if constexpr (part == 1)
                 if (p.valid(where)) { hist.insert(where); }
-            if (p.get(where + delta) == '#')
-                run = update_direction<part>();
-            else
+            if (p.get(where + delta) == '#') {
+                delta = clockwise(delta);
+                if constexpr (part == 2)
+                    if (!visited.insert({ where, delta }).second) break;
+            } else {
                 where += delta;
+            }
         }
         if constexpr (part == 1) { return hist.size(); }
     }

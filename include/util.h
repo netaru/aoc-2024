@@ -142,6 +142,9 @@ constexpr std::vector<pos> concat_dirs() {
 }
 const std::vector<pos> compass = concat_dirs();
 
+constexpr pos clockwise(pos p) { return pos{ -p.imag(), p.real() }; }
+constexpr pos cclockwise(pos p) { return pos{ p.imag(), -p.real() }; }
+
 template <>
 struct std::hash<pos> {
     std::size_t operator()(const pos &p) const {
