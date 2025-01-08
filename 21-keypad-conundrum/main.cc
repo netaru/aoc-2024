@@ -10,23 +10,15 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
 #include "util.h"
 
 using namespace std;
-
-using pos = complex<int>;
 
 using queue_t = tuple<pos, string>;
 
 using cache_key_t = tuple<pos, pos, int64_t>;
 using cache_t     = unordered_map<cache_key_t, int64_t>;
-
-template <>
-struct std::hash<pos> {
-    std::size_t operator()(const pos &p) const {
-        return std::hash<int>()(p.real()) ^ (std::hash<int>()(p.imag()) << 1);
-    }
-};
 
 template <>
 struct std::hash<cache_key_t> {
