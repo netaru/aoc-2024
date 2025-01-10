@@ -18,7 +18,7 @@ cat > "$1/main.cc"  <<EOF
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    print("This is the result\n");
+    println("This is the result");
     return 0;
 }
 EOF
