@@ -45,7 +45,7 @@ struct disk {
         return result;
     }
 
-    size_t find_best(const auto &heap, size_t size, size_t coffset) {
+    optional<memory> find(auto &heap, size_t size, size_t coffset) {
         size_t best = 0, offset = numeric_limits<size_t>::max();
         for (size_t u = size; u < heap.size(); u++) {
             if (!heap[u].size()) continue;
@@ -55,7 +55,8 @@ struct disk {
                 offset = noffset;
             }
         }
-        return best;
+        if (best == 0) return {};
+        return pop(heap[best]);
     }
 
     void push(auto &heap, memory m) {
@@ -72,11 +73,7 @@ struct disk {
         auto heap     = available;
 
         for (auto file = files.rbegin(); file != files.rend(); ++file) {
-            auto best = find_best(heap, file->size, file->offset);
-            if (best != 0) {
-                auto m = pop(heap[best]);
-                push(heap, file->move(m));
-            }
+            if (auto m = find(heap, file->size, file->offset); m.has_value()) { push(heap, file->move(m.value())); }
             for (size_t u = 0; u < file->size; ++u) { checksum += (file->id * (file->offset + u)); }
         }
         return checksum;
