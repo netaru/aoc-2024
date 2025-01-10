@@ -1,59 +1,32 @@
-#include <array>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <optional>
-#include <ostream>
 #include <print>
-#include <string>
 #include <vector>
-#include "split.h"
+
+#include "util.h"
 
 using namespace std;
 
-string to_string(vector<int64_t> out) {
-    string s;
-    bool   added = false;
-    for (auto i : out) {
-        s += (added ? "," : "") + to_string(i);
-        added = true;
-    }
-    return s;
-}
-
 struct computer {
-    int64_t           a, b, c, pc;
-    array<int64_t, 3> init;
-    vector<int>       ops;
+    int64_t     a, b, c, pc;
+    vector<int> ops;
 
-    computer(istream &is) {
-        string s;
-        int    inx = 0;
-        while (getline(is, s)) {
-            if (!s.size()) continue;
-            auto sp = split(s);
-            if (sp.front() == "Register") {
-                init[inx++] = stoi(sp.back());
-            } else if (sp.front() == "Program:") {
-                ops = split<int>(sp.back(), ',');
-            }
-        }
-        a = init[0];
-        b = init[1];
-        c = init[2];
+    computer(istream &is) : b(0), c(0) {
+        auto input = split(read(is), "\n\n");
+        a          = ints(input[0])[0];
+        ops        = ints(input[1]);
     }
 
     int64_t combo(int64_t operand) {
         switch (operand) {
-            case 0:
-            case 1:
-            case 2:
             case 3: return operand;
             case 4: return a;
             case 5: return b;
             case 6: return c;
         }
-        return 1;
+        return -1;
     }
 
     void reset(optional<int64_t> _a) {
@@ -63,7 +36,8 @@ struct computer {
         b = c = 0;
     }
 
-    vector<int64_t> run(optional<int64_t> _a = {}, bool once = false) {
+    template <int part = 1>
+    auto run(optional<int64_t> _a = {}) {
         reset(_a);
         vector<int64_t> output;
         while (pc < ops.size()) {
@@ -80,22 +54,23 @@ struct computer {
             } else if (opcode == 4) {
                 b = (b ^ c);
             } else if (opcode == 5) {
+                if constexpr (part == 2) return (combo(operand) % 8);
                 output.push_back((combo(operand) % 8));
-                if (once) { break; }
             } else if (opcode == 6) {
                 b = a >> combo(operand);
             } else if (opcode == 7) {
                 c = a >> combo(operand);
             }
         }
-        return output;
+        if constexpr (part == 1) return output;
+        if constexpr (part == 2) return 0l;
     }
 
     optional<int64_t> part2(auto current, int64_t value = 0) {
         if (current == ops.crend()) { return value; }
         vector<int> possible;
         for (int i = 0; i < 8; i++) {
-            if (auto v = run(value << 3 | i); v.front() == *current) { possible.push_back(i); }
+            if (run<2>(value << 3 | i) == *current) { possible.push_back(i); }
         }
         for (int maybe : possible) {
             if (auto v = part2(current + 1, value << 3 | maybe); v.has_value()) return v;
@@ -108,7 +83,7 @@ struct computer {
 
 int main(int argc, char *argv[]) {
     computer p(cin);
-    cout << "Part1: " + to_string(p.run()) + "\n";
-    cout << "Part2: " << p.part2() << "\n";
+    println("Part1: {}", join(p.run(), ","));
+    println("Part2: {}", p.part2());
     return 0;
 }
