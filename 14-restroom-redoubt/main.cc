@@ -72,12 +72,19 @@ string picture(span<robot> robots) {
     return p.as_string();
 }
 
+void tick(vector<robot>& robots) {
+    for (auto& r : robots) { r.tick(); }
+}
+
+bool operator==(const robot& r1, const robot& r2) { return r1.p == r2.p; }
+
 int main(int argc, char* argv[]) {
-    auto   min    = make_pair(0, numeric_limits<int>::max());
-    auto   robots = parse(cin);
+    auto min  = make_pair(0, numeric_limits<int>::max());
+    auto init = parse(cin), robots = init;
+    tick(robots);
     string last;
-    for (int i = 1; i < 10000; ++i) {
-        for (auto& r : robots) { r.tick(); }
+    for (int i = 2; init != robots; ++i) {
+        tick(robots);
         int current = product(robots);
         if (current < min.second) {
             min  = make_pair(i, current);
