@@ -1,50 +1,38 @@
 #include <algorithm>
 #include <bitset>
-#include <cstddef>
 #include <deque>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <numeric>
-#include <unordered_set>
+#include <print>
+#include <ranges>
 #include <vector>
 
-#include "2dgrid.h"
+#include "util.h"
 
 using namespace std;
-using queue_t = deque<position>;
 
-position pop(queue_t &q) {
-    position p = q.front();
-    q.pop_front();
-    return p;
-}
-
-using uset = unordered_set<position>;
-
-uset expand(uset input) {
-    uset output;
-    for (position p : input) { output.emplace(p.real() * 2, p.imag() * 2); }
+poses expand(poses input, poses &corners) {
+    poses output;
+    for (auto i : input) {
+        pos p = i * 2l;
+        output.insert(p);
+        for (pos dir : ordinal) { corners.emplace(p + dir); }
+    }
     return output;
 }
 
-auto corner_directions = vector<position>{ { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } };
 struct region {
-    char ch;
-    int  perimiter = 0;
-    uset area;
+    int   perimiter = 0;
+    poses area;
 
     int sides() {
-        uset upscale = expand(area), corners;
-        for (auto u : upscale) {
-            for (position dir : corner_directions) { corners.emplace(u.real() + dir.real(), u.imag() + dir.imag()); }
-        }
-        int sides = 0;
+        poses corners, upscale = expand(area, corners);
+        int   sides = 0;
         for (auto c : corners) {
-            bitset<4> bits, first(0b0110), second(0b1001);
-            for (size_t u = 0; u < corner_directions.size(); ++u) {
-                position dir = c + corner_directions[u];
-                bits[u]      = upscale.contains(dir);
-            }
+            bitset<4> bits, first(0b1010), second(0b0101);
+            for (const auto [u, p] : ordinal | views::enumerate) { bits[u] = upscale.contains(c + p); }
             if (bits.count() == 1 or bits.count() == 3) {
                 sides += 1;
             } else if (bits.count() == 2 and (bits == first or bits == second)) {
@@ -56,67 +44,42 @@ struct region {
 };
 
 struct garden {
-    vector<string> grid;
-    vector<region> regions;
-    set            regions_search;
+    plane          pl;
+    vector<region> rs;
+    poses          regions_search;
 
-    garden(istream &is) {
-        string s;
-        while (getline(is, s)) { grid.push_back(s); }
-        solve();
-    }
+    garden(istream &is) : pl(is) { solve(); }
 
-    bool valid(position p) {
-        return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
-    }
-
-    char get(position p) { return valid(p) ? grid[p.imag()][p.real()] : '-'; }
-
-    region search(position in) {
-        region  result;
-        queue_t q{ in };
-        char    c = get(in);
-        result.ch = c;
-        while (q.size()) {
-            position p     = pop(q);
-            char     inner = get(p);
-            if (inner != c) {
+    region search(pos in) {
+        region result;
+        char   c = pl.get(in).value();
+        for (deque<pos> q{ in }; q.size(); q.pop_front()) {
+            pos p = q.front();
+            if (pl.get(p) != c) {
                 result.perimiter++;
                 continue;
             }
-            if (result.area.contains(p)) continue;
-            result.area.insert(p);
-            for (position dir : vector<position>{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) { q.push_back(p + dir); }
+            if (!result.area.insert(p).second) continue;
+            for (pos dir : cardinal) { q.push_back(p + dir); }
         }
-        copy(result.area.begin(), result.area.end(), inserter(regions_search, regions_search.begin()));
+        ranges::copy(result.area, inserter(regions_search, regions_search.begin()));
         return result;
     }
 
     void solve() {
-        for (int x = 0; x < grid.size(); ++x) {
-            for (int y = 0; y < grid.size(); ++y) {
-                position p{ y, x };
-                if (regions_search.contains(p)) continue;
-                regions.emplace_back(search(p));
+        for (auto c : pl.chars()) {
+            for (pos p : pl.find(c)) {
+                if (!regions_search.contains(p)) { rs.emplace_back(search(p)); }
             }
         }
     }
 
-    int part1() {
-        return accumulate(regions.begin(), regions.end(), 0, [](int acc, region r) {
-            return acc + (r.area.size() * r.perimiter);
-        });
-    }
-
-    int part2() {
-        return accumulate(
-                regions.begin(), regions.end(), 0, [](int acc, region r) { return acc + (r.area.size() * r.sides()); });
-    }
+    int price(auto fn) { return transform_reduce(rs.begin(), rs.end(), 0, plus(), fn); }
 };
 
 int main(int argc, char *argv[]) {
     garden g(cin);
-    cout << "Part1: " << g.part1() << "\n";
-    cout << "Part2: " << g.part2() << "\n";
+    println("Part1: {}", g.price([](region r) { return r.area.size() * r.perimiter; }));
+    println("Part2: {}", g.price([](region r) { return r.area.size() * r.sides(); }));
     return 0;
 }
