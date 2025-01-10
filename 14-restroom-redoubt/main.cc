@@ -2,16 +2,16 @@
 #include <climits>
 #include <cstdio>
 #include <iostream>
-#include <iterator>
 #include <limits>
-#include <numeric>
 #include <optional>
 #include <print>
+#include <ranges>
 #include <span>
-#include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
-#include "split.h"
+
+#include "util.h"
 
 using namespace std;
 
@@ -27,20 +27,20 @@ const int half_x = x_size / 2;
 const int half_y = y_size / 2;
 
 struct robot {
-    int x, y, dx, dy;
+    pos p, d;
 
-    robot(int _x, int _y, int _dx, int _dy) : x(_x), y(_y), dx(_dx), dy(_dy) {}
+    robot(int x, int y, int dx, int dy) : p(x, y), d(dx, dy) {}
 
     void tick() {
-        x += dx;
-        y += dy;
-        if (x < 0) { x += x_size; }
-        if (x >= x_size) { x %= x_size; }
-        if (y < 0) { y += y_size; }
-        if (y >= y_size) { y %= y_size; }
+        p += d;
+        if (p.real() < 0) { p.real(p.real() + x_size); }
+        if (p.real() >= x_size) { p.real(p.real() % x_size); }
+        if (p.imag() < 0) { p.imag(p.imag() + y_size); }
+        if (p.imag() >= y_size) { p.imag(p.imag() % y_size); }
     }
 
     optional<int> quadrant() const {
+        auto x = p.real(), y = p.imag();
         if (x >= 0 and x < half_x and y >= 0 and y < half_y) return 0;
         if (x > half_x and x < x_size and y >= 0 and y < half_y) return 1;
         if (x >= 0 and x < half_x and y > half_y and y < y_size) return 2;
@@ -52,47 +52,40 @@ struct robot {
 int product(span<robot> robots) {
     array<int, 4> q{ 0, 0, 0, 0 };
     for (const auto& r : robots) {
-        if (auto quad = r.quadrant(); quad.has_value()) { q[quad.value()]++; }
+        if (auto quad = r.quadrant(); quad.has_value()) { q[quad.value()]++; };
     }
-    return accumulate(q.begin(), q.end(), 1, multiplies());
+    return ranges::fold_left(q, 1, multiplies());
 }
 
 vector<robot> parse(istream& is) {
     vector<robot> robots;
-    string        s;
-    while (getline(is, s)) {
-        auto line  = split(s);
-        auto pos   = split<int>(line[0].substr(2), ',');
-        auto delta = split<int>(line[1].substr(2), ',');
+    for (auto line : read_lines(is) | views::transform([](auto s) { return split(s); })) {
+        auto pos = split<int>(line[0].substr(2), ","), delta = split<int>(line[1].substr(2), ",");
         robots.emplace_back(pos[0], pos[1], delta[0], delta[1]);
     }
     return robots;
 }
 
-string build_grid(span<robot> robots) {
-    vector<string> grid(y_size, string(x_size, '.'));
-    for (const auto r : robots) { grid[r.y][r.x] = '#'; }
-    ostringstream oss;
-    copy(grid.begin(), grid.end(), ostream_iterator<string>(oss, "\n"));
-    return oss.str();
+string picture(span<robot> robots) {
+    plane p(x_size, y_size, '.');
+    for (const auto& r : robots) { p.set(r.p, '#'); }
+    return p.as_string();
 }
 
 int main(int argc, char* argv[]) {
-    int    part1, min_product = numeric_limits<int>::max(), min_iteration = 0;
+    auto   min    = make_pair(0, numeric_limits<int>::max());
     auto   robots = parse(cin);
     string last;
     for (int i = 1; i < 10000; ++i) {
-        for_each(robots.begin(), robots.end(), [](robot& r) { r.tick(); });
+        for (auto& r : robots) { r.tick(); }
         int current = product(robots);
-        if (current < min_product) {
-            min_product   = current;
-            min_iteration = i;
-            last          = build_grid(robots);
+        if (current < min.second) {
+            min  = make_pair(i, current);
+            last = picture(robots);
         }
-        if (i == 100) { part1 = current; }
+        if (i == 100) { println("Part1: {}", current); }
     }
-    print("Part1: {}\n", part1);
-    print("Part2: {}\n", min_iteration);
-    print("{}\n", last);
+    println("Part2: {}", min.first);
+    println("{}", last);
     return 0;
 }

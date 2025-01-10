@@ -176,8 +176,10 @@ struct plane {
         return {};
     }
 
-    void set(pos p, char c) { data[p.imag()][p.real()] = c; }
-    void set(std::unordered_set<pos> ps, char c) {
+    void set(pos p, char c) {
+        if (valid(p)) data[p.imag()][p.real()] = c;
+    }
+    void set(std::span<pos> ps, char c) {
         std::ranges::for_each(ps, [&](pos p) { set(p, c); });
     }
 
