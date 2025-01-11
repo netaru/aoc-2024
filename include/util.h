@@ -133,6 +133,12 @@ const pos NE{ 1, -1 }, NW{ -1, -1 }, SW{ -1, 1 }, SE{ 1, 1 };
 const std::array<pos, 4> cardinal{ dave::N, dave::E, dave::S, dave::W };
 const std::array<pos, 4> ordinal{ dave::NE, dave::NW, dave::SW, dave::SE };
 
+constexpr std::vector<pos> add(pos p, const auto &vec) {
+    std::vector<pos> result(vec.size());
+    for (size_t u = 0; u < vec.size(); u++) { result[u] = p + vec[u]; }
+    return result;
+}
+
 constexpr std::vector<pos> concat_dirs() {
     std::vector<pos> result;
     result.insert(result.end(), cardinal.begin(), cardinal.end());
@@ -183,6 +189,12 @@ struct plane {
         std::ranges::for_each(ps, [&](pos p) { set(p, c); });
     }
 
+    void reset(char c) {
+        for (i64 y = 0; y < data.size(); ++y) {
+            for (i64 x = 0; x < data[y].size(); ++x) { data[y][x] = c; }
+        }
+    }
+
     std::string slice(pos p, pos d, size_t sz, char fill = '-') const {
         std::string s;
         for (int i = 0; i < sz; ++i, p += d) { s += get(p).value_or(fill); }
@@ -193,7 +205,7 @@ struct plane {
         poses result;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
-                if (auto p = pos{ x, y }; get(p) == ch) result.insert(p);
+                if (data[y][x] == ch) result.insert(pos{ x, y });
             }
         }
         return result;

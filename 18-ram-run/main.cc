@@ -4,7 +4,6 @@
 #include <iostream>
 #include <print>
 #include <tuple>
-#include <unordered_set>
 #include <vector>
 
 #include "util.h"
@@ -20,40 +19,28 @@ const int ms = 21;
 #endif
 const int xmax = gx + 1, ymax = gx + 1;
 
-using set_t = std::unordered_set<pos>;
-using queue = std::deque<std::tuple<pos, int>>;
+using queue = deque<tuple<pos, int>>;
 
 struct ram {
-    vector<string> grid;
-    vector<pos>    blocks;
-    pos            start, end;
+    plane       pl;
+    vector<pos> blocks;
+    pos         start, end;
 
-    ram(istream &is) : grid(ymax, string(xmax, '.')), start{ 0, 0 }, end{ gx, gy } {
-        string s;
-        while (getline(is, s)) {
+    ram(istream &is) : pl(xmax, ymax, '.'), start{ 0, 0 }, end{ gx, gy } {
+        for (auto &s : read_lines(is)) {
             auto block = split<int>(s, ",");
             blocks.emplace_back(block.front(), block.back());
         }
     }
 
-    bool valid(pos p) {
-        return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
-    }
-    void set(pos p, char c) {
-        if (valid(p)) grid[p.imag()][p.real()] = c;
-    }
-    char get(pos p) { return valid(p) ? grid[p.imag()][p.real()] : '#'; }
-
     optional<int> walk(int stop = ms) {
         reset(stop);
-        queue q{ { start, 0 } };
-        set_t visited;
-        while (q.size()) {
-            const auto [current, step] = pop(q);
+        history visited;
+        for (queue q{ { start, 0 } }; q.size(); q.pop_front()) {
+            const auto [current, step] = q.front();
             if (current == end) { return step; }
-            for (pos dir : cardinal) {
-                pos npos = current + dir;
-                if (get(npos) == '#' or visited.contains(npos)) continue;
+            for (pos npos : add(current, cardinal)) {
+                if (pl.get(npos).value_or('#') == '#' or visited.contains(npos)) continue;
                 visited.insert(npos);
                 q.emplace_back(npos, step + 1);
             }
@@ -62,8 +49,8 @@ struct ram {
     }
 
     void reset(int stop) {
-        grid = vector<string>(ymax, string(xmax, '.'));
-        for (int u = 0; u < stop; ++u) { set(blocks[u], '#'); }
+        pl.reset('.');
+        for (int u = 0; u < stop; ++u) { pl.set(blocks[u], '#'); }
     }
 
     int part1() { return walk(ms).value(); }
@@ -85,7 +72,7 @@ struct ram {
 
 int main(int argc, char *argv[]) {
     ram r(cin);
-    print("Part1: {}\n", r.part1());
-    print("Part2: {}\n", r.part2());
+    println("Part1: {}", r.part1());
+    println("Part2: {}", r.part2());
     return 0;
 }
