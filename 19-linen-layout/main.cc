@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <iostream>
 #include <numeric>
 #include <print>
@@ -6,53 +5,45 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include "split.h"
+
+#include "util.h"
 
 using namespace std;
 
-using cache_t = unordered_map<string_view, uint64_t>;
+using cache_t = unordered_map<string_view, u64>;
 struct linen {
     vector<string> towels, patterns;
     cache_t        cache;
 
     linen(istream &is) {
-        string s;
-        getline(is, s);
-        s += ",";
-        vector<string> list = split(s);
-        for (auto t : list) { towels.push_back(t.substr(0, t.size() - 1)); }
-        while (getline(is, s)) {
-            if (s.size()) { patterns.push_back(s); }
-        }
+        auto input = split(read(is), "\n\n");
+        towels     = split(input[0], ",");
+        patterns   = split(input[1], "\n");
     }
 
-    uint64_t can_make(string_view pattern) {
+    u64 can_make(string_view pattern) {
         if (!pattern.size()) return 1;
         if (cache.contains(pattern)) { return cache[pattern]; }
-        uint64_t solutions = 0;
-        for (const string towel : towels) {
-            if (pattern.substr(0, towel.size()) == towel) { solutions += can_make(pattern.substr(towel.size())); }
+        u64 solutions = 0;
+        for (const string towel : towels | views::filter([&](string s) { return pattern.substr(0, s.size()) == s; })) {
+            solutions += can_make(pattern.substr(towel.size()));
         }
-        cache[pattern] = solutions;
-        return cache[pattern];
+        return cache[pattern] = solutions;
     }
 
-    int part1() {
-        return accumulate(patterns.begin(), patterns.end(), 0, [&](int acc, string current) {
-            return acc + (can_make(current) ? 1 : 0);
-        });
+    u64 part1() {
+        return transform_reduce(
+                patterns.begin(), patterns.end(), 0ul, plus(), [&](string c) { return can_make(c) ? 1 : 0; });
     }
 
-    uint64_t part2() {
-        return accumulate(patterns.begin(), patterns.end(), 0ull, [&](uint64_t acc, string current) {
-            return acc + can_make(current);
-        });
+    u64 part2() {
+        return transform_reduce(patterns.begin(), patterns.end(), 0ul, plus(), [&](string c) { return can_make(c); });
     }
 };
 
 int main(int argc, char *argv[]) {
     linen l(cin);
-    print("Part1: {}\n", l.part1());
-    print("Part2: {}\n", l.part2());
+    println("Part1: {}", l.part1());
+    println("Part2: {}", l.part2());
     return 0;
 }
