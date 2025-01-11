@@ -9,10 +9,6 @@
 
 using namespace std;
 
-constexpr int get_distance(const pos &lhs, const pos &rhs) {
-    return abs(lhs.real() - rhs.real()) + abs(lhs.imag() - rhs.imag());
-}
-
 struct cpu {
     plane pl;
     pos   start, end;
@@ -28,7 +24,7 @@ struct cpu {
         for (deque<tuple<pos, size_t>> q{ { start, 0 } }; q.size(); q.pop_front()) {
             const auto [current, ms] = q.front();
             for (pos npos : add(current, cardinal)) {
-                if (nodes.contains(npos) or pl.get(npos).value_or('#') == '#') continue;
+                if (nodes.contains(npos) or pl.get(npos) == '#') continue;
                 nodes.emplace(npos, ms + 1);
                 q.emplace_back(npos, ms + 1);
                 break;
@@ -43,7 +39,7 @@ struct cpu {
                 const auto [pos1, cost1] = *iter1;
                 const auto [pos2, cost2] = *iter2;
 
-                int distance = get_distance(pos1, pos2);
+                int distance = manhattan(pos1, pos2);
                 if (distance <= 20 and abs(cost1 - cost2) >= 100 + distance) {
                     part2++;
                     if (distance <= 2) part1++;

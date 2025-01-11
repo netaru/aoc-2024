@@ -133,6 +133,10 @@ const pos NE{ 1, -1 }, NW{ -1, -1 }, SW{ -1, 1 }, SE{ 1, 1 };
 const std::array<pos, 4> cardinal{ dave::N, dave::E, dave::S, dave::W };
 const std::array<pos, 4> ordinal{ dave::NE, dave::NW, dave::SW, dave::SE };
 
+constexpr int manhattan(const pos &lhs, const pos &rhs) {
+    return std::abs(lhs.real() - rhs.real()) + std::abs(lhs.imag() - rhs.imag());
+}
+
 constexpr std::vector<pos> add(pos p, const auto &vec) {
     std::vector<pos> result(vec.size());
     for (size_t u = 0; u < vec.size(); u++) { result[u] = p + vec[u]; }
