@@ -215,6 +215,16 @@ struct plane {
         return result;
     }
 
+    pos find_first(char ch) {
+        poses result;
+        for (i64 y = 0; y < data.size(); ++y) {
+            for (i64 x = 0; x < data[y].size(); ++x) {
+                if (data[y][x] == ch) return pos{ x, y };
+            }
+        }
+        return { -1, -1 };
+    }
+
     std::unordered_set<char> chars() {
         std::unordered_set<char> cs;
         for (i64 y = 0; y < data.size(); ++y) {

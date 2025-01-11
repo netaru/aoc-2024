@@ -38,7 +38,7 @@ auto is_stuck(plane& plane, pos start, auto hist) {
 
 int main(int argc, char* argv[]) {
     plane plane(cin);
-    pos   start = *plane.find('^').begin();
+    pos   start = plane.find_first('^');
     auto  hist  = walk<1>(plane, start);
     println("Part1: {}", hist.size());
     println("Part2: {}", is_stuck(plane, start, hist));

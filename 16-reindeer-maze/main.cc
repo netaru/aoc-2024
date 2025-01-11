@@ -28,7 +28,7 @@ struct maze {
     pos       start, end;
     visited_t visited;
 
-    maze(istream &is) : pl(is), start(*pl.find('S').begin()), end(*pl.find('E').begin()) { traverse(); }
+    maze(istream &is) : pl(is), start(pl.find_first('S')), end(pl.find_first('E')) { traverse(); }
 
     void traverse() {
         pq q;

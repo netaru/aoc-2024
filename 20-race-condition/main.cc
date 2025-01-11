@@ -15,7 +15,7 @@ struct cpu {
 
     unordered_map<pos, int> nodes;
 
-    cpu(istream &is) : pl(is), start(*pl.find('S').begin()), end(*pl.find('E').begin()) {
+    cpu(istream &is) : pl(is), start(pl.find_first('S')), end(pl.find_first('E')) {
         nodes.emplace(start, 0);
         bfs();
     }
