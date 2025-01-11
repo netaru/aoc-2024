@@ -6,7 +6,8 @@
 #include <tuple>
 #include <unordered_set>
 #include <vector>
-#include "split.h"
+
+#include "util.h"
 
 using namespace std;
 
@@ -19,33 +20,18 @@ const int ms = 21;
 #endif
 const int xmax = gx + 1, ymax = gx + 1;
 
-using pos   = complex<int>;
 using set_t = std::unordered_set<pos>;
 using queue = std::deque<std::tuple<pos, int>>;
-
-template <>
-struct std::hash<pos> {
-    std::size_t operator()(const pos &p) const {
-        return std::hash<int64_t>()(p.real()) ^ (std::hash<int64_t>()(p.imag()) << 1);
-    }
-};
-
-queue::value_type pop(queue &q) {
-    queue::value_type value = q.front();
-    q.pop_front();
-    return value;
-}
 
 struct ram {
     vector<string> grid;
     vector<pos>    blocks;
     pos            start, end;
 
-    ram(istream &is) : grid(ymax), start{ 0, 0 }, end{ gx, gy } {
-        for (auto &row : grid) { row = string(xmax, '.'); }
+    ram(istream &is) : grid(ymax, string(xmax, '.')), start{ 0, 0 }, end{ gx, gy } {
         string s;
         while (getline(is, s)) {
-            auto block = split<int>(s, ',');
+            auto block = split<int>(s, ",");
             blocks.emplace_back(block.front(), block.back());
         }
     }
@@ -65,7 +51,7 @@ struct ram {
         while (q.size()) {
             const auto [current, step] = pop(q);
             if (current == end) { return step; }
-            for (pos dir : vector<pos>{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) {
+            for (pos dir : cardinal) {
                 pos npos = current + dir;
                 if (get(npos) == '#' or visited.contains(npos)) continue;
                 visited.insert(npos);
@@ -76,7 +62,7 @@ struct ram {
     }
 
     void reset(int stop) {
-        for (auto &row : grid) { row = string(xmax, '.'); }
+        grid = vector<string>(ymax, string(xmax, '.'));
         for (int u = 0; u < stop; ++u) { set(blocks[u], '#'); }
     }
 
