@@ -67,10 +67,9 @@ struct disk {
 
     template <int part>
     i64 solve() {
-        deque<memory> files = occupied;
-        if constexpr (part == 1) files = fragment();
-        i64  checksum = 0;
-        auto heap     = available;
+        deque<memory> files    = part == 1 ? fragment() : occupied;
+        i64           checksum = 0;
+        auto          heap     = available;
 
         for (auto file = files.rbegin(); file != files.rend(); ++file) {
             if (auto m = find(heap, file->size, file->offset); m.has_value()) { push(heap, file->move(m.value())); }
