@@ -6,7 +6,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "split.h"
+
+#include "util.h"
 
 using namespace std;
 
@@ -51,22 +52,16 @@ struct board {
     unordered_map<string, vector<string>> lefts, rights;
 
     board(istream &is) {
-        string s;
-        bool   sig = true;
-        while (getline(is, s)) {
-            if (!s.size()) {
-                sig = false;
-                continue;
-            }
-            if (sig) {
-                vector<string> line = split(s, ':');
-                signals.push_back({ line[0], stoi(line[1]) });
-            } else {
-                vector<string> line = split(s);
-                gates.insert({ line.back(), gate{ line[1], line.back() } });
-                lefts[line[0]].push_back(line.back());
-                rights[line[2]].push_back(line.back());
-            }
+        auto input = split(read(is), "\n\n");
+        for (const string &s : split(input[0], "\n")) {
+            vector<string> line = split(s, ":");
+            signals.push_back({ line[0], stoi(line[1]) });
+        }
+        for (const string &s : split(input[1], "\n")) {
+            vector<string> line = split(s);
+            gates.insert({ line.back(), gate{ line[1], line.back() } });
+            lefts[line[0]].push_back(line.back());
+            rights[line[2]].push_back(line.back());
         }
     }
 
