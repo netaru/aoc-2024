@@ -25,7 +25,7 @@ struct linen {
         if (!pattern.size()) return 1;
         if (cache.contains(pattern)) { return cache[pattern]; }
         u64 solutions = 0;
-        for (const string towel : towels | views::filter([&](string s) { return pattern.substr(0, s.size()) == s; })) {
+        for (const string towel : towels | vs::filter([&](string s) { return pattern.substr(0, s.size()) == s; })) {
             solutions += can_make(pattern.substr(towel.size()));
         }
         return cache[pattern] = solutions;

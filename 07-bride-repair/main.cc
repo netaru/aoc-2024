@@ -33,7 +33,7 @@ i64 solve(pair<vector<i64>, i64> p) {
 }
 
 int main(int argc, char *argv[]) {
-    auto ps = split(read(cin), "\n") | views::transform([](const auto &s) {
+    auto ps = split(read(cin), "\n") | vs::transform([](const auto &s) {
                   auto input = split(s, ":");
                   return make_pair(split<i64>(input.back()), stoll(input.front()));
               });

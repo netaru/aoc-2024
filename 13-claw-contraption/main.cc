@@ -28,7 +28,7 @@ int64_t solve(const auto &c, auto func) {
 }
 
 int main(int argc, char *argv[]) {
-    auto chunks = ints<double>(read(cin)) | views::chunk(6);
+    auto chunks = ints<double>(read(cin)) | vs::chunk(6);
     print("Part1: {}\n", solve(chunks, score<1>));
     print("Part2: {}\n", solve(chunks, score<2>));
     return 0;

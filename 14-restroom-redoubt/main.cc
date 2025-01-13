@@ -54,12 +54,12 @@ int product(span<robot> robots) {
     for (const auto& r : robots) {
         if (auto quad = r.quadrant(); quad.has_value()) { q[quad.value()]++; };
     }
-    return ranges::fold_left(q, 1, multiplies());
+    return rs::fold_left(q, 1, multiplies());
 }
 
 vector<robot> parse(istream& is) {
     vector<robot> robots;
-    for (auto line : read_lines(is) | views::transform([](auto s) { return split(s); })) {
+    for (auto line : read_lines(is) | vs::transform([](auto s) { return split(s); })) {
         auto pos = split<int>(line[0].substr(2), ","), delta = split<int>(line[1].substr(2), ",");
         robots.emplace_back(pos[0], pos[1], delta[0], delta[1]);
     }

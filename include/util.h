@@ -28,6 +28,9 @@ using i32 = int32_t;
 using u64 = uint64_t;
 using i64 = int64_t;
 
+namespace rs = std::ranges;
+namespace vs = std::views;
+
 template <typename T = char>
 auto read(std::istream &is) {
     if constexpr (std::is_same_v<T, char>) {
@@ -82,7 +85,7 @@ inline std::string_view trim(std::string_view sv) { return rtrim(ltrim(sv)); }
 template <typename T = std::string>
 std::vector<T> split(std::string_view sv, std::string_view delimiter = " ") {
     std::vector<T> result;
-    for (const auto word : std::views::split(sv, delimiter)) {
+    for (const auto word : vs::split(sv, delimiter)) {
         std::string_view view = trim(std::string_view{ word });
         if (view.size()) {
             if constexpr (std::is_same_v<T, std::string>) {
@@ -173,8 +176,8 @@ struct plane {
     std::vector<std::string> data;
 
     plane() {}
-    plane(std::istream &is) { std::ranges::copy(read_lines(is), std::back_inserter(data)); }
-    plane(std::string_view s) { std::ranges::copy(split(s, "\n"), std::back_inserter(data)); }
+    plane(std::istream &is) { rs::copy(read_lines(is), std::back_inserter(data)); }
+    plane(std::string_view s) { rs::copy(split(s, "\n"), std::back_inserter(data)); }
     plane(size_t x, size_t y, char ch) : data(y, std::string(x, ch)) {}
 
     bool valid(pos p) const {
@@ -193,7 +196,7 @@ struct plane {
         if (valid(p)) data[p.imag()][p.real()] = c;
     }
     void set(const auto &ps, char c) {
-        std::ranges::for_each(ps, [&](pos p) { set(p, c); });
+        rs::for_each(ps, [&](pos p) { set(p, c); });
     }
 
     void reset(char c) {
@@ -241,7 +244,7 @@ struct plane {
 
     std::string as_string() {
         std::ostringstream oss;
-        std::ranges::copy(data, std::ostream_iterator<std::string>(oss, "\n"));
+        rs::copy(data, std::ostream_iterator<std::string>(oss, "\n"));
         return oss.str();
     }
 };
@@ -256,7 +259,7 @@ namespace dave {
 
 template <typename T>
 T sort(T c) {
-    std::sort(c.begin(), c.end());
+    rs::sort(c);
     return c;
 }
 

@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "util.h"
+
 using namespace std;
 
 using pair_t   = pair<int64_t, int64_t>;
@@ -66,6 +68,6 @@ int main(int argc, char *argv[]) {
         return acc;
     });
     print("Part1: {}\n", part1);
-    print("Part2: {}\n", ranges::max(views::values(bananas)));
+    print("Part2: {}\n", rs::max(vs::values(bananas)));
     return 0;
 }

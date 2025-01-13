@@ -32,7 +32,7 @@ struct region {
         int   sides = 0;
         for (auto c : corners) {
             bitset<4> bits, first(0b1010), second(0b0101);
-            for (const auto [u, p] : ordinal | views::enumerate) { bits[u] = upscale.contains(c + p); }
+            for (const auto [u, p] : ordinal | vs::enumerate) { bits[u] = upscale.contains(c + p); }
             if (bits.count() == 1 or bits.count() == 3) {
                 sides += 1;
             } else if (bits.count() == 2 and (bits == first or bits == second)) {
@@ -62,7 +62,7 @@ struct garden {
             if (!result.area.insert(p).second) continue;
             for (pos dir : cardinal) { q.push_back(p + dir); }
         }
-        ranges::copy(result.area, inserter(regions_search, regions_search.begin()));
+        rs::copy(result.area, inserter(regions_search, regions_search.begin()));
         return result;
     }
 
