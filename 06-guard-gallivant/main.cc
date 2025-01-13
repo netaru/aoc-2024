@@ -9,14 +9,13 @@
 using namespace std;
 
 template <int part>
-auto walk(plane& plane, pos start, optional<pos> block = {}) {
-    pos      where = start, delta(0, -1);
+auto walk(plane& plane, pos where, optional<pos> block = {}) {
+    pos      delta(0, -1);
     history  hist;
     dhistory visited;
-    if (block.has_value()) plane.set(block.value(), '#');
+    plane.set(block, '#');
     while (plane.valid(where)) {
-        if constexpr (part == 1)
-            if (plane.valid(where)) { hist.insert(where); }
+        if constexpr (part == 1) hist.insert(where);
         if (plane.get(where + delta) == '#') {
             delta = clockwise(delta);
             if constexpr (part == 2)
@@ -25,7 +24,7 @@ auto walk(plane& plane, pos start, optional<pos> block = {}) {
             where += delta;
         }
     }
-    if (block.has_value()) plane.set(block.value(), '.');
+    plane.set(block, '.');
     if constexpr (part == 1) { return hist; }
     if constexpr (part == 2) { return where; }
 }

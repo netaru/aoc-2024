@@ -186,10 +186,13 @@ struct plane {
         return {};
     }
 
+    void set(std::optional<pos> p, char c) {
+        if (p.has_value()) set(p.value(), c);
+    }
     void set(pos p, char c) {
         if (valid(p)) data[p.imag()][p.real()] = c;
     }
-    void set(std::span<pos> ps, char c) {
+    void set(const auto &ps, char c) {
         std::ranges::for_each(ps, [&](pos p) { set(p, c); });
     }
 
