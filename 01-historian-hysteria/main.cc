@@ -2,39 +2,32 @@
 #include <functional>
 #include <iostream>
 #include <map>
-#include <numeric>
 #include <ranges>
 #include <vector>
 
+#include "util.h"
+
 using namespace std;
 
-int part1(const vector<int> &left, const vector<int> &right) {
-    return ranges::fold_left(
-            views::zip_transform([](int l, int r) { return abs(l - r); }, left, right), 0, plus<int>());
+int part1(span<int> left, span<int> right) {
+    return ranges::fold_left(views::zip_transform([](int l, int r) { return abs(l - r); }, left, right), 0, plus());
 }
 
-int part2(const vector<int> &left, const vector<int> &right) {
-    auto f = accumulate(right.begin(), right.end(), map<int, int>{}, [](auto acc, int value) {
-        acc[value]++;
-        return acc;
+int part2(span<int> left, span<int> right) {
+    auto frequencies = ranges::fold_left(right, map<int, int>{}, [](auto m, int value) {
+        m[value]++;
+        return m;
     });
-    return ranges::fold_left(views::transform(left, [&](int v) { return v * f[v]; }), 0, plus<int>());
-}
-
-void parse(vector<int> &left, vector<int> &right) {
-    int first, second;
-    while (cin >> first >> second) {
-        left.push_back(first);
-        right.push_back(second);
-    }
-    sort(left.begin(), left.end());
-    sort(right.begin(), right.end());
+    return ranges::fold_left(views::transform(left, [&](int v) { return v * frequencies[v]; }), 0, plus());
 }
 
 int main(int argc, char *argv[]) {
-    vector<int> left, right;
-    parse(left, right);
-    cout << "Part1: " << part1(left, right) << "\n";
-    cout << "Part2: " << part2(left, right) << "\n";
+    vector<int> left, right, values = read<int>(cin);
+    for (auto &value : values | views::stride(2)) left.push_back(value);
+    for (auto &value : values | views::drop(1) | views::stride(2)) right.push_back(value);
+    ranges::sort(left);
+    ranges::sort(right);
+    println("Part 1: {}", part1(left, right));
+    println("Part 2: {}", part2(left, right));
     return 0;
 }
