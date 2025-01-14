@@ -1,24 +1,17 @@
-#include <algorithm>
-#include <complex>
-#include <functional>
 #include <iostream>
-#include <numeric>
-#include <vector>
 
 #include "util.h"
 
 using namespace std;
 
-bool isAMS(const plane &p, pos where, pos delta) { return dave::sort(p.slice(where, delta, 3)) == "AMS"; }
-
 int main(int argc, char *argv[]) {
     plane p(cin);
-    auto  fn1 = [&](pos where) {
-        return count_if(compass.begin(), compass.end(), [&](pos delta) { return p.slice(where, delta, 4) == "XMAS"; });
+    auto  isAMS = [&](pos where, pos delta) { return dave::sort(p.slice(where, delta, 3)) == "AMS"; };
+    auto  fn1   = [&](pos where) {
+        return rs::count_if(compass, [&](pos delta) { return p.slice(where, delta, 4) == "XMAS"; });
     };
-    auto fn2 = [&](pos where) { return isAMS(p, where + dave::NE, dave::SW) and isAMS(p, where + dave::NW, dave::SE); };
-    auto xs = p.find('X'), as = p.find('A');
-    println("Part1: {}", transform_reduce(xs.begin(), xs.end(), 0, plus(), fn1));
-    println("Part2: {}", count_if(as.begin(), as.end(), fn2));
+    auto fn2 = [&](pos where) { return isAMS(where + dave::NE, dave::SW) and isAMS(where + dave::NW, dave::SE); };
+    println("Part1: {}", rs::fold_left(p.find('X') | vs::transform(fn1), 0, plus()));
+    println("Part2: {}", rs::count_if(p.find('A'), fn2));
     return 0;
 }
