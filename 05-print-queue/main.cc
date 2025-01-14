@@ -2,7 +2,6 @@
 #include <functional>
 #include <iostream>
 #include <map>
-#include <numeric>
 #include <ranges>
 #include <set>
 #include <vector>
@@ -21,7 +20,7 @@ int main(int argc, char *argv[]) {
     for (const auto &s : split(input[1], "\n")) { pages.push_back(split<int>(s, ",")); }
     auto fn1 = [&](auto p) { return rs::is_sorted(p, comp) ? middle(p) : 0; };
     auto fn2 = [&](auto p) { return rs::is_sorted(p, comp) ? 0 : middle(dave::sort(p, comp)); };
-    println("Part1: {}", transform_reduce(pages.begin(), pages.end(), 0, plus(), fn1));
-    println("Part2: {}", transform_reduce(pages.begin(), pages.end(), 0, plus(), fn2));
+    println("Part1: {}", rs::fold_left(pages | vs::transform(fn1), 0, plus()));
+    println("Part2: {}", rs::fold_left(pages | vs::transform(fn2), 0, plus()));
     return 0;
 }
