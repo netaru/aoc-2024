@@ -3,7 +3,6 @@
 #include <functional>
 #include <iostream>
 #include <ranges>
-#include <string>
 #include <tuple>
 #include <vector>
 
@@ -41,14 +40,13 @@ bool part2_predicate(report r) {
 
 reports parse() {
     reports rs;
-    string  s;
-    while (getline(cin, s)) rs.push_back(split<int>(s));
+    for (const auto s : read_lines(cin)) rs.push_back(split<int>(s));
     return rs;
 }
 
 int main(int argc, char *argv[]) {
     reports rs = parse();
-    cout << "Part1: " << count_if(rs.begin(), rs.end(), part1_predicate) << "\n";
-    cout << "Part2: " << count_if(rs.begin(), rs.end(), part2_predicate) << "\n";
+    cout << "Part1: " << rs::count_if(rs, part1_predicate) << "\n";
+    cout << "Part2: " << rs::count_if(rs, part2_predicate) << "\n";
     return 0;
 }
