@@ -1,4 +1,3 @@
-#include <cmath>
 #include <iostream>
 #include <numeric>
 #include <ranges>
@@ -10,8 +9,11 @@
 
 using namespace std;
 
-constexpr i64 digits(i64 value) { return log10(value) + 1; }
-constexpr i64 concat(i64 sum, i64 value) { return sum * powl(10, digits(value)) + value; }
+constexpr i64 concat(i64 sum, i64 value) {
+    size_t digits = to_string(value).size();
+    while (digits--) { sum *= 10; }
+    return sum + value;
+}
 
 template <int part>
 bool solveable(auto iter, auto end, i64 sum, i64 target) {
