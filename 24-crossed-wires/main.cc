@@ -46,61 +46,37 @@ i64 run(bits_t bits, vector<wire_t> wires) {
 }
 
 vector<string> debug(bits_t bits, vector<wire_t> wires) {
-    vector<string> swapped;
-    auto           push    = [&](auto v) { swapped.push_back(v.value_or("ERROR")); };
-    auto           returns = [&](auto ta, auto tb, auto top) -> optional<string> {
+    optional<string> carry, ncarry, sum1, sum2, carry1, carry2;
+    vector<string>   swapped;
+    auto             swap_push = [&](auto &v, auto &x) {
+        swap(v, x);
+        swapped.push_back(v.value_or("ERROR"));
+        swapped.push_back(x.value_or("ERROR"));
+    };
+    auto is_z    = [](auto v) { return v.value_or("t")[0] == 'z'; };
+    auto correct = [&](auto ta, auto tb, auto top) -> optional<string> {
         for (const auto [reg1, op, reg2, out] : wires) {
             if (((reg1 == ta and reg2 == tb) or (reg1 == tb and reg2 == ta)) and op == top) return out;
         }
         return {};
     };
-    optional<string> carry = {}, new_carry = {}, sum1, sum2, carry1, carry2;
-
     i64 sum = rs::count_if(wires, [](auto v) { return get<3>(v)[0] == 'z'; }) - 1;
     for (i64 i = 0; i < sum; ++i) {
-        auto xreg = format("x{:02}", i);
-        auto yreg = format("y{:02}", i);
-
-        sum1   = returns(xreg, yreg, "XOR");
-        carry1 = returns(xreg, yreg, "AND");
-
+        sum1   = correct(format("x{:02}", i), format("y{:02}", i), "XOR");
+        carry1 = correct(format("x{:02}", i), format("y{:02}", i), "AND");
         if (carry.has_value()) {
-            carry2 = returns(carry, sum1, "AND");
-            if (!carry2.has_value()) {
-                swap(carry1, sum1);
-                push(carry1);
-                push(sum1);
-                carry2 = returns(carry, sum1, "AND");
+            if (carry2 = correct(carry, sum1, "AND"); !carry2.has_value()) {
+                swap_push(carry1, sum1);
+                carry2 = correct(carry, sum1, "AND");
             }
-            sum2 = returns(carry, sum1, "XOR");
-            if (sum1.has_value() and sum1.value()[0] == 'z') {
-                swap(sum1, sum2);
-                push(sum1);
-                push(sum2);
+            sum2 = correct(carry, sum1, "XOR");
+            if (sum1.has_value() and is_z(sum1)) { swap_push(sum1, sum2); }
+            if (carry1.has_value() and is_z(carry1)) { swap_push(carry1, sum2); }
+            if (carry2.has_value() and is_z(carry2)) { swap_push(carry2, sum2); }
+            if (ncarry = correct(carry2, carry1, "OR"); is_z(ncarry) and ncarry != format("z{:02}", sum)) {
+                swap_push(ncarry, sum2);
             }
-            if (carry1.has_value() and carry1.value()[0] == 'z') {
-                swap(carry1, sum2);
-                push(carry1);
-                push(sum2);
-            }
-            if (carry2.has_value() and carry2.value()[0] == 'z') {
-                swap(carry2, sum2);
-                push(carry2);
-                push(sum2);
-            }
-            new_carry = returns(carry2, carry1, "OR");
-        } else {
-            new_carry = {};
-        }
-
-        if (new_carry.has_value() and new_carry.value()[0] == 'z' and new_carry.value() != format("z{:02}", sum)) {
-            swap(new_carry, sum2);
-            push(new_carry);
-            push(sum2);
-        }
-
-        if (carry.has_value()) {
-            carry = new_carry;
+            carry = ncarry;
         } else {
             carry = carry1;
         }
