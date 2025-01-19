@@ -29,8 +29,7 @@ i64     solve(i64 value, i64 blinks) {
     } else {
         result = solve(value * 2024, blinks - 1);
     }
-    cache[key] = result;
-    return result;
+    return cache[key] = result;
 }
 
 template <int steps>
