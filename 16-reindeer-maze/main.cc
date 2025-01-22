@@ -67,22 +67,21 @@ struct maze {
     }
 
     size_t part1() {
-        auto fn = [](auto l, auto r) { return l.second < r.second; };
         auto filtered = visited | vs::filter([&](auto t) { return t.first.first == end; });
-        return rs::min_element(filtered, fn)->second;
+        return rs::min_element(filtered, [](auto l, auto r) { return l.second < r.second; })->second;
     }
 
     int part2() {
-        auto fn = [&, target = part1()](auto t) { return t.first.first == end and t.second == target; };
-        unordered_set<set_t> from;
-        for (auto v : visited | vs::filter(fn)) { from.insert(v.first); }
-        return trace_back(from);
+        return trace_back(
+                visited |
+                vs::filter([&, target = part1()](auto t) { return t.first.first == end and t.second == target; }) |
+                vs::transform([](auto t) { return t.first; }) | rs::to<unordered_set<set_t>>());
     }
 };
 
 int main(int argc, char *argv[]) {
     maze m(cin);
-    print("Part1: {}\n", m.part1());
-    print("Part2: {}\n", m.part2());
+    println("Part1: {}", m.part1());
+    println("Part2: {}", m.part2());
     return 0;
 }
