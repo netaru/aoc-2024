@@ -176,9 +176,9 @@ struct plane {
     std::vector<std::string> data;
 
     plane() {}
-    plane(const plane &other) { data = other.data; }
-    plane(std::istream &is) { rs::copy(read_lines(is), std::back_inserter(data)); }
-    plane(std::string_view s) { rs::copy(split(s, "\n"), std::back_inserter(data)); }
+    plane(const plane &other) : data(other.data) {}
+    plane(std::istream &is) : data(read_lines(is)) {}
+    plane(std::string_view s) : data(split(s, "\n")) {}
     plane(size_t x, size_t y, char ch) : data(y, std::string(x, ch)) {}
 
     bool valid(pos p) const {
@@ -247,11 +247,7 @@ struct plane {
         return cs;
     }
 
-    std::string as_string() {
-        std::ostringstream oss;
-        rs::copy(data, std::ostream_iterator<std::string>(oss, "\n"));
-        return oss.str();
-    }
+    std::string as_string() { return join(data, "\n"); }
 };
 
 auto pop(auto &q) {

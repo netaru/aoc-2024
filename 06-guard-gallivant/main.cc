@@ -30,8 +30,8 @@ auto walk(plane& plane, pos where, optional<pos> block = {}) {
 }
 
 auto is_stuck(plane& plane, pos start, auto hist) {
-    hist.erase(hist.find(start));
-    return rs::count_if(hist, [&](pos block) { return plane.valid(walk<2>(plane, start, block)); });
+    auto fn = [&](auto t) { return t != start; };
+    return rs::count_if(hist | vs::filter(fn), [&](pos block) { return plane.valid(walk<2>(plane, start, block)); });
 }
 
 int main(int argc, char* argv[]) {
