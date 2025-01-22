@@ -11,7 +11,7 @@ using namespace std;
 
 struct cpu {
     plane pl;
-    pos   start, end;
+    pos start, end;
 
     unordered_map<pos, int> nodes;
 

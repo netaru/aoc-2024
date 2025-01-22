@@ -47,13 +47,13 @@ i64 run(bits_t bits, vector<wire_t> wires) {
 
 vector<string> debug(bits_t bits, vector<wire_t> wires) {
     optional<string> carry, ncarry, sum1, sum2, carry1, carry2;
-    vector<string>   swapped;
-    auto             swap_push = [&](auto &v, auto &x) {
+    vector<string> swapped;
+    auto swap_push = [&](auto &v, auto &x) {
         swap(v, x);
         swapped.push_back(v.value_or("ERROR"));
         swapped.push_back(x.value_or("ERROR"));
     };
-    auto is_z    = [](auto v) { return v.value_or("t")[0] == 'z'; };
+    auto is_z = [](auto v) { return v.value_or("t")[0] == 'z'; };
     auto correct = [&](auto ta, auto tb, auto top) -> optional<string> {
         for (const auto [reg1, op, reg2, out] : wires) {
             if (((reg1 == ta and reg2 == tb) or (reg1 == tb and reg2 == ta)) and op == top) return out;
@@ -62,7 +62,7 @@ vector<string> debug(bits_t bits, vector<wire_t> wires) {
     };
     i64 sum = rs::count_if(wires, [](auto v) { return get<3>(v)[0] == 'z'; }) - 1;
     for (i64 i = 0; i < sum; ++i) {
-        sum1   = correct(format("x{:02}", i), format("y{:02}", i), "XOR");
+        sum1 = correct(format("x{:02}", i), format("y{:02}", i), "XOR");
         carry1 = correct(format("x{:02}", i), format("y{:02}", i), "AND");
         if (carry.has_value()) {
             if (carry2 = correct(carry, sum1, "AND"); !carry2.has_value()) {
@@ -86,12 +86,12 @@ vector<string> debug(bits_t bits, vector<wire_t> wires) {
 }
 
 int main(int argc, char *argv[]) {
-    bits_t         bits;
+    bits_t bits;
     vector<wire_t> wires;
 
     auto input = split(read(cin), "\n\n");
     for (const string &s : split(input[0], "\n")) {
-        auto row     = split(s, ": ");
+        auto row = split(s, ": ");
         bits[row[0]] = stoi(row[1]);
     }
     for (const string &s : split(input[1], "\n")) {

@@ -14,7 +14,7 @@ struct code {
 
     code(istream &is) {
         for (auto &s : split(read(is), "\n\n")) {
-            plane         pl(s);
+            plane pl(s);
             array<int, 5> item = { 0 };
             for (auto p : pl.find('#')) { item[p.real()]++; }
             auto &curr = pl.get(pos{ 0, 0 }) == '.' ? keys : locks;

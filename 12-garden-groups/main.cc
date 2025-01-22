@@ -24,12 +24,12 @@ poses expand(poses input, poses &corners) {
 }
 
 struct region {
-    int   perimiter = 0;
+    int perimiter = 0;
     poses area;
 
     int sides() {
         poses corners, upscale = expand(area, corners);
-        int   sides = 0;
+        int sides = 0;
         for (auto c : corners) {
             bitset<4> bits, first(0b1010), second(0b0101);
             for (const auto [u, p] : ordinal | vs::enumerate) { bits[u] = upscale.contains(c + p); }
@@ -44,15 +44,15 @@ struct region {
 };
 
 struct garden {
-    plane          pl;
+    plane pl;
     vector<region> rs;
-    poses          regions_search;
+    poses regions_search;
 
     garden(istream &is) : pl(is) { solve(); }
 
     region search(pos in) {
         region result;
-        char   c = pl.get(in).value();
+        char c = pl.get(in).value();
         for (deque<pos> q{ in }; q.size(); q.pop_front()) {
             pos p = q.front();
             if (pl.get(p) != c) {

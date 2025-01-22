@@ -13,12 +13,12 @@
 
 #include "util.h"
 
-using poss  = std::unordered_set<pos>;
+using poss = std::unordered_set<pos>;
 using freqs = std::unordered_map<char, poss>;
 
 freqs parse(std::istream &is) {
     plane p(is);
-    auto  ch = p.chars();
+    auto ch = p.chars();
     ch.erase(ch.find('.'));
     freqs f;
     for (const auto &c : ch) { f[c] = p.find(c); }
@@ -39,7 +39,7 @@ poss antinodes(pos origin, poss others) {
         if (other == origin) continue;
         if constexpr (part == 1) {
             pos delta = other - origin;
-            pos node  = origin + delta + delta;
+            pos node = origin + delta + delta;
             if (inbounds(node)) { result.insert(node); }
         } else {
             add(other - origin, origin, result);

@@ -19,8 +19,8 @@
 #include <unordered_set>
 #include <vector>
 
-using u8  = uint8_t;
-using i8  = int8_t;
+using u8 = uint8_t;
+using i8 = int8_t;
 using u16 = uint16_t;
 using i16 = int16_t;
 using u32 = uint32_t;
@@ -41,7 +41,7 @@ auto read(std::istream &is) {
 }
 
 inline std::vector<std::string> read_lines(std::istream &is) {
-    std::string              line;
+    std::string line;
     std::vector<std::string> lines;
     while (std::getline(is, line)) { lines.push_back(line); }
     return lines;
@@ -60,7 +60,7 @@ std::vector<T> ints(std::string_view sv) {
     size_t ind = 0;
     while (true) {
         auto iter = std::find_if(sv.begin() + ind, sv.end(), isdigit);
-        auto end  = std::find_if_not(iter, sv.end(), end_func);
+        auto end = std::find_if_not(iter, sv.end(), end_func);
         if (iter == sv.end()) break;
         if (iter != sv.begin() and *(iter - 1) == '-') { iter--; }
         std::string_view digits = sv.substr(iter - sv.begin(), end - iter);
@@ -104,7 +104,7 @@ template <typename T>
 inline std::string join(T begin, T end, std::string_view delimiter = " ") {
     using type = std::iterator_traits<decltype(begin)>::value_type;
     std::string result;
-    bool        added = false;
+    bool added = false;
     for (; begin != end; begin++) {
         if (added) result += delimiter;
         if constexpr (std::is_same_v<type, std::string>) {
@@ -123,9 +123,9 @@ std::string join(const T &values, std::string_view delimiter = " ") {
     return join(values.cbegin(), values.cend(), delimiter);
 }
 
-using pos      = std::complex<i64>;
-using history  = std::unordered_set<pos>;
-using poses    = history;
+using pos = std::complex<i64>;
+using history = std::unordered_set<pos>;
+using poses = history;
 using dhistory = std::unordered_set<std::pair<pos, pos>>;
 
 namespace dave {

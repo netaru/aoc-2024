@@ -13,10 +13,10 @@
 using namespace std;
 
 using cache_key_t = pair<i64, i64>;
-using cache_t     = map<cache_key_t, i64>;
+using cache_t = map<cache_key_t, i64>;
 
 cache_t cache;
-i64     solve(i64 value, i64 blinks) {
+i64 solve(i64 value, i64 blinks) {
     cache_key_t key{ value, blinks };
     if (blinks == 0) return 1;
     if (cache.contains(key)) return cache[key];

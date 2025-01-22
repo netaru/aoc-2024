@@ -10,8 +10,8 @@ using namespace std;
 
 template <int part>
 auto walk(plane& plane, pos where, optional<pos> block = {}) {
-    pos      delta(0, -1);
-    history  hist;
+    pos delta(0, -1);
+    history hist;
     dhistory visited;
     plane.set(block, '#');
     while (plane.valid(where)) {
@@ -36,8 +36,8 @@ auto is_stuck(plane& plane, pos start, auto hist) {
 
 int main(int argc, char* argv[]) {
     plane plane(cin);
-    pos   start = plane.find_first('^');
-    auto  hist  = walk<1>(plane, start);
+    pos start = plane.find_first('^');
+    auto hist = walk<1>(plane, start);
     println("Part1: {}", hist.size());
     println("Part2: {}", is_stuck(plane, start, hist));
     return 0;

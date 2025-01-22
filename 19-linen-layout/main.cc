@@ -14,7 +14,7 @@ using namespace std;
 using cache_t = unordered_map<string_view, u64>;
 struct linen {
     vector<string> input, towels, patterns;
-    cache_t        cache;
+    cache_t cache;
 
     linen(istream &is)
         : input(split(read(is), "\n\n")), towels(split(input[0], ",")), patterns(split(input[1], "\n")) {}

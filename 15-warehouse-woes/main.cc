@@ -22,9 +22,9 @@ struct std::hash<pos> {
 };
 
 struct warehouse {
-    vector<string>           grid, init;
-    pos                      robot, start, left{ -1, 0 }, right{ 1, 0 }, up{ 0, -1 }, down{ 0, 1 };
-    string                   input;
+    vector<string> grid, init;
+    pos robot, start, left{ -1, 0 }, right{ 1, 0 }, up{ 0, -1 }, down{ 0, 1 };
+    string input;
     unordered_map<char, pos> dir{ { '<', left }, { '>', right }, { '^', up }, { 'v', down } };
 
     pos locate(char ch) {
@@ -45,12 +45,12 @@ struct warehouse {
             }
             init.push_back(s);
         }
-        grid  = init;
+        grid = init;
         start = locate('@');
     }
 
     void reset() {
-        grid  = init;
+        grid = init;
         robot = start;
     }
 
@@ -97,8 +97,8 @@ struct warehouse {
 
     bool move_vertical(pos from, pos delta) {
         deque<pair<pos, pos>> moves;
-        unordered_set<pos>    current{ from }, next;
-        bool                  done = false;
+        unordered_set<pos> current{ from }, next;
+        bool done = false;
         while (!done) {
             done = true;
             for (auto v : current) {
@@ -168,7 +168,7 @@ struct warehouse {
                 }
             }
         }
-        grid  = ngrid;
+        grid = ngrid;
         robot = locate('@');
     }
 

@@ -22,7 +22,7 @@ struct monkey {
 
     monkey(i64 seed) : current(seed), price(current % 10), total(0), window(seed + 9) {
         for (i64 prev = price; total < 3; ++total, prev = price) {
-            price  = tick() % 10;
+            price = tick() % 10;
             window = ((window << 5) | ((price - prev) + 9)) & 0xfffff;
         }
     }
@@ -33,14 +33,14 @@ struct monkey {
     constexpr i64 prune(i64 n) { return n & 16777215; }
 
     i64 tick() {
-        current        = prune(mix(current, mul(current)));
-        current        = mix(current, div(current));
+        current = prune(mix(current, mul(current)));
+        current = mix(current, div(current));
         return current = prune(mix(current, mul(current, 11)));
     }
 
     i64 next(i64 n = 1) {
         for (i64 prev = price; total < n; ++total, prev = price) {
-            price  = tick() % 10;
+            price = tick() % 10;
             window = ((window << 5) | ((price - prev) + 9)) & 0xfffff;
             if (!bananas.contains(window)) { bananas[window] += price; }
         }
@@ -50,7 +50,7 @@ struct monkey {
 
 int main(int argc, char *argv[]) {
     vector<monkey> monkeys{ istream_iterator<i64>(cin), {} };
-    i64            part1 = transform_reduce(
+    i64 part1 = transform_reduce(
             execution::par, monkeys.begin(), monkeys.end(), 0l, plus(), [](monkey &m) { return m.next(2000); });
 
     bananas_t bananas;

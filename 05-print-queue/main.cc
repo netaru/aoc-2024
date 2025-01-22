@@ -11,10 +11,10 @@ using namespace std;
 constexpr int middle(const auto &p) { return p[(p.size() / 2)]; }
 
 int main(int argc, char *argv[]) {
-    map<int, set<int>>  rules;
+    map<int, set<int>> rules;
     vector<vector<int>> pages;
-    auto                comp{ [&rules](int lhs, int rhs) { return rules[lhs].contains(rhs); } };
-    auto                input = split(read(cin), "\n\n");
+    auto comp{ [&rules](int lhs, int rhs) { return rules[lhs].contains(rhs); } };
+    auto input = split(read(cin), "\n\n");
     for (const auto &rule : split(input[0], "\n") | vs::transform([](auto s) { return split<int>(s, "|"); }))
         rules[rule.front()].insert(rule.back());
     for (const auto &s : split(input[1], "\n")) { pages.push_back(split<int>(s, ",")); }

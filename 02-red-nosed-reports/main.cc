@@ -10,14 +10,14 @@
 
 using namespace std;
 
-using report  = vector<int>;
+using report = vector<int>;
 using reports = vector<report>;
 
 bool is_sorted(report r) { return is_sorted(r.begin(), r.end()) or is_sorted(r.begin(), r.end(), greater<int>()); }
 
 bool element_difference_check(report r) {
     auto view = r | vs::adjacent<2>;
-    auto it   = rs::find_if(view, [](tuple<int, int> p) {
+    auto it = rs::find_if(view, [](tuple<int, int> p) {
         int value = abs(get<0>(p) - get<1>(p));
         return (value > 3 or value == 0);
     });

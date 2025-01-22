@@ -22,9 +22,9 @@ const int xmax = gx + 1, ymax = gx + 1;
 using queue = deque<tuple<pos, int>>;
 
 struct ram {
-    plane       pl;
+    plane pl;
     vector<pos> blocks;
-    pos         start, end;
+    pos start, end;
 
     ram(istream &is) : pl(xmax, ymax, '.'), start{ 0, 0 }, end{ gx, gy } {
         for (auto &s : read_lines(is)) {

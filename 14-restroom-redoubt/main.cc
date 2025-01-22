@@ -79,7 +79,7 @@ void tick(vector<robot>& robots) {
 bool operator==(const robot& r1, const robot& r2) { return r1.p == r2.p; }
 
 int main(int argc, char* argv[]) {
-    auto min  = make_pair(0, numeric_limits<int>::max());
+    auto min = make_pair(0, numeric_limits<int>::max());
     auto init = parse(cin), robots = init;
     tick(robots);
     string last;
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         tick(robots);
         int current = product(robots);
         if (current < min.second) {
-            min  = make_pair(i, current);
+            min = make_pair(i, current);
             last = picture(robots);
         }
         if (i == 100) { println("Part1: {}", current); }

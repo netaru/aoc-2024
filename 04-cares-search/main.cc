@@ -6,8 +6,8 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     plane p(cin);
-    auto  isAMS = [&](pos where, pos delta) { return dave::sort(p.slice(where, delta, 3)) == "AMS"; };
-    auto  fn1   = [&](pos where) {
+    auto isAMS = [&](pos where, pos delta) { return dave::sort(p.slice(where, delta, 3)) == "AMS"; };
+    auto fn1 = [&](pos where) {
         return rs::count_if(compass, [&](pos delta) { return p.slice(where, delta, 4) == "XMAS"; });
     };
     auto fn2 = [&](pos where) { return isAMS(where + dave::NE, dave::SW) and isAMS(where + dave::NW, dave::SE); };

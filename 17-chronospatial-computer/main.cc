@@ -10,13 +10,13 @@
 using namespace std;
 
 struct computer {
-    int64_t     a, b, c, pc;
+    int64_t a, b, c, pc;
     vector<int> ops;
 
     computer(istream &is) : b(0), c(0) {
         auto input = split(read(is), "\n\n");
-        a          = ints(input[0])[0];
-        ops        = ints(input[1]);
+        a = ints(input[0])[0];
+        ops = ints(input[1]);
     }
 
     int64_t combo(int64_t operand) {

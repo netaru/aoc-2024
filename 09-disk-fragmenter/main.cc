@@ -23,7 +23,7 @@ struct memory {
 };
 
 struct disk {
-    deque<memory>            occupied;
+    deque<memory> occupied;
     array<deque<memory>, 10> available;
 
     disk(istream &is) {
@@ -51,7 +51,7 @@ struct disk {
             if (!heap[u].size()) continue;
             auto noffset = heap[u].front().offset;
             if (noffset < offset and noffset < coffset) {
-                best   = u;
+                best = u;
                 offset = noffset;
             }
         }
@@ -67,9 +67,9 @@ struct disk {
 
     template <int part>
     i64 solve() {
-        deque<memory> files    = part == 1 ? fragment() : occupied;
-        i64           checksum = 0;
-        auto          heap     = available;
+        deque<memory> files = part == 1 ? fragment() : occupied;
+        i64 checksum = 0;
+        auto heap = available;
 
         for (auto file = files.rbegin(); file != files.rend(); ++file) {
             if (auto m = find(heap, file->size, file->offset); m.has_value()) { push(heap, file->move(m.value())); }
