@@ -176,6 +176,7 @@ struct plane {
     std::vector<std::string> data;
 
     plane() {}
+    plane(const plane &other) { data = other.data; }
     plane(std::istream &is) { rs::copy(read_lines(is), std::back_inserter(data)); }
     plane(std::string_view s) { rs::copy(split(s, "\n"), std::back_inserter(data)); }
     plane(size_t x, size_t y, char ch) : data(y, std::string(x, ch)) {}
@@ -197,6 +198,10 @@ struct plane {
     }
     void set(const auto &ps, char c) {
         rs::for_each(ps, [&](pos p) { set(p, c); });
+    }
+
+    void swap(pos p1, pos p2) {
+        if (valid(p1) and valid(p2)) { std::swap(data[p1.imag()][p1.real()], data[p2.imag()][p2.real()]); }
     }
 
     void reset(char c) {
