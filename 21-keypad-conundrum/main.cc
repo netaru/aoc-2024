@@ -3,8 +3,8 @@
 #include <deque>
 #include <iostream>
 #include <limits>
-#include <numeric>
 #include <print>
+#include <ranges>
 #include <string_view>
 #include <tuple>
 #include <unordered_map>
@@ -27,8 +27,6 @@ struct std::hash<cache_key_t> {
         return std::hash<pos>()(p1) ^ (std::hash<pos>()(p2) << 16) ^ (std::hash<int64_t>()(num) << 32);
     }
 };
-
-const vector<pos> directions{ { 1, 0 }, { -1, 0 }, { 0, -1 }, { 0, -1 } };
 
 cache_t cache;
 struct dirpad {
@@ -129,17 +127,13 @@ struct numpad {
     }
 
     int64_t score(vector<string> ss, int n = 2) {
-        return accumulate(ss.begin(), ss.end(), 0l, [&](int64_t acc, string s) {
-            return acc + solve(s, n) * ints<int64_t>(s).front();
-        });
+        return rs::fold_left(ss | vs::transform([&](auto s) { return solve(s, n) * ints<i64>(s)[0]; }), 0l, plus());
     }
 };
 
 int main(int argc, char *argv[]) {
     numpad np;
-    string s;
-    vector<string> ss;
-    while (getline(cin, s)) { ss.push_back(s); }
+    vector<string> ss = read_lines(cin);
     print("Part1: {}\n", np.score(ss, 2));
     print("Part2: {}\n", np.score(ss, 25));
     return 0;
