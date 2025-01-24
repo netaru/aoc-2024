@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
         for (const auto &[key, value] : m.bananas) bananas[key] += value;
     }
 
-    print("Part1: {}\n", part1);
-    print("Part2: {}\n", rs::max(vs::values(bananas)));
+    println("Part1: {}", part1);
+    println("Part2: {}", rs::max(vs::values(bananas)));
     return 0;
 }

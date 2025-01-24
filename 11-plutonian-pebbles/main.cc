@@ -39,7 +39,7 @@ auto fn() {
 
 int main(int argc, char* argv[]) {
     vector<i64> xs{ istream_iterator<i64>{ cin }, {} };
-    print("Part 1: {}\n", transform_reduce(xs.begin(), xs.end(), 0ll, plus(), fn<25>()));
-    print("Part 2: {}\n", transform_reduce(xs.begin(), xs.end(), 0ll, plus(), fn<75>()));
+    println("Part 1: {}", transform_reduce(xs.begin(), xs.end(), 0ll, plus(), fn<25>()));
+    println("Part 2: {}", transform_reduce(xs.begin(), xs.end(), 0ll, plus(), fn<75>()));
     return 0;
 }

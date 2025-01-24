@@ -125,7 +125,7 @@ struct numpad {
 int main(int argc, char *argv[]) {
     numpad np;
     vector<string> ss = read_lines(cin);
-    print("Part1: {}\n", np.score(ss, 2));
-    print("Part2: {}\n", np.score(ss, 25));
+    println("Part1: {}", np.score(ss, 2));
+    println("Part2: {}", np.score(ss, 25));
     return 0;
 }

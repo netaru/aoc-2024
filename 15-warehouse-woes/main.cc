@@ -185,7 +185,7 @@ struct warehouse {
 
 int main(int argc, char *argv[]) {
     warehouse wh(cin);
-    print("Part1: {}\n", wh.part1());
-    print("Part2: {}\n", wh.part2());
+    println("Part1: {}", wh.part1());
+    println("Part2: {}", wh.part2());
     return 0;
 }
