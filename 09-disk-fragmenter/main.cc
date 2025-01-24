@@ -70,10 +70,9 @@ struct disk {
         deque<memory> files = part == 1 ? fragment() : occupied;
         i64 checksum = 0;
         auto heap = available;
-
         for (auto file = files.rbegin(); file != files.rend(); ++file) {
             if (auto m = find(heap, file->size, file->offset); m.has_value()) { push(heap, file->move(m.value())); }
-            for (size_t u = 0; u < file->size; ++u) { checksum += (file->id * (file->offset + u)); }
+            checksum += file->id * (file->offset * file->size + (file->size * (file->size - 1)) / 2);
         }
         return checksum;
     }
