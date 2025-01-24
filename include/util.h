@@ -99,17 +99,16 @@ std::vector<T> split(std::string_view sv, std::string_view delimiter = " ") {
     }
     return result;
 }
-template <typename T> std::string join(const T &, std::string_view = " ");
+template <typename T>
+std::string join(const T &, std::string_view = " ");
 
 namespace std {
-    inline std::string to_string(const std::vector<char> &vec) {
-        return std::string{vec.begin(), vec.end()};
-    }
+inline std::string to_string(const std::vector<char> &vec) { return std::string{ vec.begin(), vec.end() }; }
 
-    template<typename T>
-    inline std::string to_string(const std::vector<T> &vec) {
-        return join(vec, ", ");
-    }
+template <typename T>
+inline std::string to_string(const std::vector<T> &vec) {
+    return join(vec, ", ");
+}
 }
 
 template <typename T>
@@ -211,7 +210,7 @@ struct plane {
     }
 
     bool valid(pos p) const {
-        return p.real() >= 0 and p.real() < data.size() and p.imag() >= 0 and p.imag() < data[p.real()].size();
+        return p.imag() >= 0 and p.imag() < data.size() and p.real() >= 0 and p.real() < data[p.imag()].size();
     }
 
     std::optional<T> get(pos p) const {
@@ -227,6 +226,9 @@ struct plane {
     }
     void set(const auto &ps, T v) {
         rs::for_each(ps, [&](pos p) { set(p, v); });
+    }
+    void set(const std::vector<std::tuple<pos, T>> values) {
+        for (const auto [p, value] : values) { set(p, value); }
     }
 
     void swap(pos p1, pos p2) {
