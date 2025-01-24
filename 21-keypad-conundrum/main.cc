@@ -25,8 +25,8 @@ struct std::hash<cache_key_t> {
 };
 
 struct dirpad {
-    cache_t cache;
     plane<char> pad;
+    cache_t cache;
 
     dirpad() {
         pad.add_row("-^A"sv);
@@ -61,16 +61,14 @@ struct dirpad {
         return cache[ck] = result;
     }
 
-    i64 solve(const std::string &s, int n = 1) {
-        if (n == 0) return s.size();
-        i64 result = 0;
+    i64 solve(string_view sv, int n = 1) {
+        if (n == 0) return sv.size();
         pos cur{ 2, 0 };
-        for (const auto c : s) {
-            pos next = pad.find_first(c);
-            result += cheapest(cur, next, n);
-            cur = next;
-        }
-        return result;
+        auto fn = [&](auto c) {
+            pos prev = cur, next = pad.find_first(c);
+            return cheapest(prev, cur = next, n);
+        };
+        return rs::fold_left(sv | vs::transform(fn), 0l, plus());
     }
 };
 
@@ -111,14 +109,12 @@ struct numpad {
     }
 
     i64 solve(string_view sv, int n = 2) {
-        i64 result = 0;
         pos cur{ 2, 3 };
-        for (const auto c : sv) {
-            pos next = pad.find_first(c);
-            result += cheapest(cur, next, n);
-            cur = next;
-        }
-        return result;
+        auto fn = [&](auto c) {
+            pos prev = cur, next = pad.find_first(c);
+            return cheapest(prev, cur = next, n);
+        };
+        return rs::fold_left(sv | vs::transform(fn), 0l, plus());
     }
 
     i64 score(vector<string> ss, int n = 2) {
