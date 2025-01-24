@@ -10,15 +10,15 @@
 using namespace std;
 
 template <int part>
-int bfs(const plane<char> &p, pos where) {
+int bfs(const plane<int> &p, pos where) {
     int sum = 0;
     history visited;
-    for (deque<pair<pos, char>> q{ { where, '0' } }; !q.empty(); q.pop_front()) {
+    for (deque<pair<pos, int>> q{ { where, 0 } }; !q.empty(); q.pop_front()) {
         const auto &[at, value] = q.front();
         if constexpr (part == 1) {
             if (const auto [iter, inserted] = visited.insert(at); !inserted) continue;
         }
-        if (value == '9') {
+        if (value == 9) {
             sum++;
             continue;
         }
@@ -31,14 +31,14 @@ int bfs(const plane<char> &p, pos where) {
 }
 
 template <int part>
-int score(const plane<char> &p, const poses &zs) {
+int score(const plane<int> &p, const poses &zs) {
     auto fn = [&](pos ps) { return bfs<part>(p, ps); };
     return rs::fold_left(zs | vs::transform(fn), 0, plus());
 }
 
 int main(int argc, char *argv[]) {
-    plane p(cin);
-    auto zs = p.find('0');
+    plane<int> p(cin);
+    auto zs = p.find(0);
     println("Part1: {}", score<1>(p, zs));
     println("Part2: {}", score<2>(p, zs));
     return 0;

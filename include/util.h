@@ -99,10 +99,16 @@ std::vector<T> split(std::string_view sv, std::string_view delimiter = " ") {
     }
     return result;
 }
+template <typename T> std::string join(const T &, std::string_view = " ");
 
 namespace std {
     inline std::string to_string(const std::vector<char> &vec) {
         return std::string{vec.begin(), vec.end()};
+    }
+
+    template<typename T>
+    inline std::string to_string(const std::vector<T> &vec) {
+        return join(vec, ", ");
     }
 }
 
@@ -125,7 +131,7 @@ inline std::string join(T begin, T end, std::string_view delimiter = " ") {
 }
 
 template <typename T>
-std::string join(const T &values, std::string_view delimiter = " ") {
+std::string join(const T &values, std::string_view delimiter) {
     return join(values.cbegin(), values.cend(), delimiter);
 }
 
