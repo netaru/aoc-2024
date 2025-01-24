@@ -44,7 +44,7 @@ struct region {
 };
 
 struct garden {
-    plane pl;
+    plane<char> pl;
     vector<region> rs;
     poses regions_search;
 
@@ -67,7 +67,7 @@ struct garden {
     }
 
     void solve() {
-        for (auto c : pl.chars()) {
+        for (auto c : pl.values()) {
             for (pos p : pl.find(c)) {
                 if (!regions_search.contains(p)) { rs.emplace_back(search(p)); }
             }

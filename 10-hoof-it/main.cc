@@ -10,7 +10,7 @@
 using namespace std;
 
 template <int part>
-int bfs(const plane &p, pos where) {
+int bfs(const plane<char> &p, pos where) {
     int sum = 0;
     history visited;
     for (deque<pair<pos, char>> q{ { where, '0' } }; !q.empty(); q.pop_front()) {
@@ -31,7 +31,7 @@ int bfs(const plane &p, pos where) {
 }
 
 template <int part>
-int score(const plane &p, const poses &zs) {
+int score(const plane<char> &p, const poses &zs) {
     auto fn = [&](pos ps) { return bfs<part>(p, ps); };
     return rs::fold_left(zs | vs::transform(fn), 0, plus());
 }

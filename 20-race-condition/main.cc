@@ -10,7 +10,7 @@
 using namespace std;
 
 struct cpu {
-    plane pl;
+    plane<char> pl;
     pos start, end;
 
     unordered_map<pos, int> nodes;

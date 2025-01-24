@@ -18,7 +18,7 @@ using freqs = std::unordered_map<char, poss>;
 
 freqs parse(std::istream &is) {
     plane p(is);
-    auto ch = p.chars();
+    auto ch = p.values();
     ch.erase(ch.find('.'));
     freqs f;
     for (const auto &c : ch) { f[c] = p.find(c); }

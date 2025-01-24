@@ -22,7 +22,7 @@ const int xmax = gx + 1, ymax = gx + 1;
 using queue = deque<tuple<pos, int>>;
 
 struct ram {
-    plane pl;
+    plane<char> pl;
     vector<pos> blocks;
     pos start, end;
 

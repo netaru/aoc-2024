@@ -9,7 +9,7 @@
 using namespace std;
 
 template <int part>
-auto walk(plane& plane, pos where, optional<pos> block = {}) {
+auto walk(plane<char>& plane, pos where, optional<pos> block = {}) {
     pos delta(0, -1);
     history hist;
     dhistory visited;
@@ -29,7 +29,7 @@ auto walk(plane& plane, pos where, optional<pos> block = {}) {
     if constexpr (part == 2) { return where; }
 }
 
-auto is_stuck(plane& plane, pos start, auto hist) {
+auto is_stuck(plane<char>& plane, pos start, auto hist) {
     auto fn = [&](auto t) { return t != start; };
     return rs::count_if(hist | vs::filter(fn), [&](pos block) { return plane.valid(walk<2>(plane, start, block)); });
 }

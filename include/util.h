@@ -100,6 +100,12 @@ std::vector<T> split(std::string_view sv, std::string_view delimiter = " ") {
     return result;
 }
 
+namespace std {
+    inline std::string to_string(const std::vector<char> &vec) {
+        return std::string{vec.begin(), vec.end()};
+    }
+}
+
 template <typename T>
 inline std::string join(T begin, T end, std::string_view delimiter = " ") {
     using type = std::iterator_traits<decltype(begin)>::value_type;
@@ -172,72 +178,97 @@ struct std::hash<std::pair<pos, pos>> {
     }
 };
 
+template <typename T = char>
 struct plane {
-    std::vector<std::string> data;
+    std::vector<std::vector<T>> data;
 
     plane() {}
-    plane(const plane &other) : data(other.data) {}
-    plane(std::istream &is) : data(read_lines(is)) {}
-    plane(std::string_view s) : data(split(s, "\n")) {}
-    plane(size_t x, size_t y, char ch) : data(y, std::string(x, ch)) {}
+    plane(const plane<T> &other) : data(other.data) {}
+    plane(std::istream &is) : data(build(read_lines(is))) {}
+    plane(std::string_view s) : data(build(split(s, "\n"))) {}
+    plane(size_t x, size_t y, T v) : data(y, std::vector<T>(x, v)) {}
+
+    std::vector<std::vector<T>> build(std::vector<std::string> lines) {
+        std::vector<std::vector<T>> result;
+        for (auto line : lines) {
+            std::vector<T> vec;
+            for (auto ch : line) {
+                if constexpr (std::is_same_v<T, char>) {
+                    vec.push_back(ch);
+                } else {
+                    vec.push_back(static_cast<T>(ch - '0'));
+                }
+            }
+            result.push_back(vec);
+        }
+        return result;
+    }
 
     bool valid(pos p) const {
         return p.real() >= 0 and p.real() < data.size() and p.imag() >= 0 and p.imag() < data[p.real()].size();
     }
 
-    std::optional<char> get(pos p) const {
+    std::optional<T> get(pos p) const {
         if (valid(p)) return data[p.imag()][p.real()];
         return {};
     }
 
-    void set(std::optional<pos> p, char c) {
-        if (p.has_value()) set(p.value(), c);
+    void set(std::optional<pos> p, T v) {
+        if (p.has_value()) set(p.value(), v);
     }
-    void set(pos p, char c) {
-        if (valid(p)) data[p.imag()][p.real()] = c;
+    void set(pos p, T v) {
+        if (valid(p)) data[p.imag()][p.real()] = v;
     }
-    void set(const auto &ps, char c) {
-        rs::for_each(ps, [&](pos p) { set(p, c); });
+    void set(const auto &ps, T v) {
+        rs::for_each(ps, [&](pos p) { set(p, v); });
     }
 
     void swap(pos p1, pos p2) {
         if (valid(p1) and valid(p2)) { std::swap(data[p1.imag()][p1.real()], data[p2.imag()][p2.real()]); }
     }
 
-    void reset(char c) {
+    void reset(T v) {
         for (i64 y = 0; y < data.size(); ++y) {
-            for (i64 x = 0; x < data[y].size(); ++x) { data[y][x] = c; }
+            for (i64 x = 0; x < data[y].size(); ++x) { data[y][x] = v; }
         }
     }
 
-    std::string slice(pos p, pos d, size_t sz, char fill = '-') const {
+    std::string slice(pos p, pos d, size_t sz) const {
         std::string s;
-        for (int i = 0; i < sz; ++i, p += d) { s += get(p).value_or(fill); }
+        for (int i = 0; i < sz; ++i, p += d) {
+            if (std::optional<T> value = get(p); value.has_value()) {
+                if constexpr (std::is_same_v<T, char>) {
+                    s += value.value();
+                } else {
+                    s += std::to_string(value.value());
+                }
+            }
+        }
         return s;
     }
 
-    poses find(char ch) {
+    poses find(T v) {
         poses result;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
-                if (data[y][x] == ch) result.insert(pos{ x, y });
+                if (data[y][x] == v) result.insert(pos{ x, y });
             }
         }
         return result;
     }
 
-    pos find_first(char ch) {
+    pos find_first(T v) {
         poses result;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
-                if (data[y][x] == ch) return pos{ x, y };
+                if (data[y][x] == v) return pos{ x, y };
             }
         }
         return { -1, -1 };
     }
 
-    std::unordered_set<char> chars() {
-        std::unordered_set<char> cs;
+    std::unordered_set<T> values() {
+        std::unordered_set<T> cs;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
                 auto p = pos{ x, y };

@@ -23,7 +23,7 @@ using visited_t = unordered_map<set_t, size_t>;
 using pq = priority_queue<queue_t, deque<queue_t>, queue_less>;
 
 struct maze {
-    plane pl;
+    plane<char> pl;
     pos start, end;
     visited_t visited;
 
