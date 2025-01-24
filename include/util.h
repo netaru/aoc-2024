@@ -218,6 +218,8 @@ struct plane {
         return {};
     }
 
+    void add_row(auto row) { data.push_back({ row.cbegin(), row.cend() }); }
+
     void set(std::optional<pos> p, T v) {
         if (p.has_value()) set(p.value(), v);
     }
