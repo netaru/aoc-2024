@@ -4,7 +4,6 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
-#include <numeric>
 #include <print>
 #include <ranges>
 #include <vector>
@@ -74,7 +73,7 @@ struct garden {
         }
     }
 
-    int price(auto fn) { return transform_reduce(rs.begin(), rs.end(), 0, plus(), fn); }
+    int price(auto fn) { return rs::fold_left(rs | vs::transform(fn), 0, plus()); }
 };
 
 int main(int argc, char *argv[]) {

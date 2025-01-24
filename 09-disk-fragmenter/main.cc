@@ -27,7 +27,7 @@ struct disk {
     array<deque<memory>, 10> available;
 
     disk(istream &is) {
-        string s = read_lines(cin).front();
+        string s = read_lines(cin)[0];
         for (size_t u = 0, offset = 0; u < s.size(); u++) {
             size_t size = s[u] - '0';
             if (size == 0) continue;
