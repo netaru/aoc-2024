@@ -223,9 +223,9 @@ struct plane {
     std::vector<std::string> columns() {
         std::vector<std::string> result;
         const auto r = rows();
-        for (size_t y = 0; y < r.size(); ++y) {
+        for (size_t x = 0; x < r[0].size(); ++x) {
             std::string column;
-            for (size_t x = 0; x < r[y].size(); ++x) { column += r[y][x]; }
+            for (size_t y = 0; y < r.size(); ++y) { column += r[y][x]; }
             result.push_back(column);
         }
         return result;
