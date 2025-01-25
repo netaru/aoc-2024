@@ -1,79 +1,39 @@
-#include <algorithm>
 #include <complex>
 #include <deque>
 #include <iostream>
-#include <iterator>
 #include <optional>
 #include <print>
+#include <ranges>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
+#include "util.h"
+
 using namespace std;
 
-using pos = complex<int>;
-
-template <>
-struct std::hash<pos> {
-    std::size_t operator()(const pos &p) const {
-        return std::hash<int64_t>()(p.real()) ^ (std::hash<int64_t>()(p.imag()) << 1);
-    }
-};
+const unordered_map<char, pos> dir{ { '<', dave::W }, { '>', dave::E }, { '^', dave::N }, { 'v', dave::S } };
 
 struct warehouse {
-    vector<string> grid, init;
-    pos robot, start, left{ -1, 0 }, right{ 1, 0 }, up{ 0, -1 }, down{ 0, 1 };
+    vector<string> in;
+    plane<char> grid, init;
+    pos robot;
     string input;
-    unordered_map<char, pos> dir{ { '<', left }, { '>', right }, { '^', up }, { 'v', down } };
 
-    pos locate(char ch) {
-        for (int y = 0; y < grid.size(); ++y) {
-            for (int x = 0; x < grid[0].size(); ++x) {
-                if (grid[y][x] == ch) return { x, y };
-            }
-        }
-        return { 0, 0 };
-    }
-
-    warehouse(istream &is) {
-        string s;
-        while (getline(is, s)) {
-            if (s == "") {
-                copy(istream_iterator<char>(cin), {}, back_inserter(input));
-                break;
-            }
-            init.push_back(s);
-        }
-        grid = init;
-        start = locate('@');
-    }
-
-    void reset() {
-        grid = init;
-        robot = start;
-    }
-
-    void set(pos at, char ch) { grid[at.imag()][at.real()] = ch; }
-    char get(pos at) { return grid[at.imag()][at.real()]; }
-
-    void swap(pos first, pos second) {
-        char c1 = get(first), c2 = get(second);
-        set(first, c2);
-        set(second, c1);
-    }
+    warehouse(istream &is) : in(split(read(is), "\n\n")), grid(in[0]), init(grid), input(dave::remove(in[1], '\n')) {}
 
     optional<pos> find_next_available(pos from, pos delta) {
         while (true) {
             from += delta;
-            if (get(from) == '.') { return { from }; }
-            if (get(from) == '#') { return {}; }
+            if (grid.get(from) == '.') { return { from }; }
+            if (grid.get(from) == '#') { return {}; }
         }
         return {};
     }
 
-    bool is_block(pos at) { return (get(at) == ']' or get(at) == '['); }
-    bool is_horizontal(pos delta) { return delta == left or delta == right; }
+    bool is_block(pos at) { return (grid.get(at) == ']' or grid.get(at) == '['); }
+    bool is_horizontal(pos delta) { return delta == dave::W or delta == dave::E; }
 
     bool move_horizontal(pos from, pos delta) {
         deque<pair<pos, pos>> moves;
@@ -81,17 +41,17 @@ struct warehouse {
         pos prev = from;
         for (from += delta; is_block(from); prev = from, from += delta) { moves.emplace_front(from, prev); }
 
-        if (get(from) == '.') {
+        if (grid.get(from) == '.') {
             moves.emplace_front(from, prev);
-            for (auto &[opos, npos] : moves) { swap(opos, npos); }
+            for (auto &[opos, npos] : moves) { grid.swap(opos, npos); }
             return true;
         }
         return false;
     }
 
     optional<pair<pos, pos>> get_block(pos at) {
-        if (get(at) == ']') return { { at + left, at } };
-        if (get(at) == '[') return { { at, at + right } };
+        if (grid.get(at) == ']') return { { at + dave::W, at } };
+        if (grid.get(at) == '[') return { { at, at + dave::E } };
         return {};
     }
 
@@ -104,7 +64,7 @@ struct warehouse {
             for (auto v : current) {
                 pos npos = v + delta;
                 moves.emplace_front(v, npos);
-                if (get(npos) == '#') { return false; }
+                if (grid.get(npos) == '#') { return false; }
                 if (auto block = get_block(npos); block.has_value()) {
                     done = false;
                     next.insert(block->first);
@@ -114,21 +74,21 @@ struct warehouse {
             current = next;
             next.clear();
         }
-        for (auto &[opos, npos] : moves) { swap(opos, npos); }
+        for (auto &[opos, npos] : moves) { grid.swap(opos, npos); }
         return true;
     }
 
     int part1() {
-        reset();
+        robot = grid.find_first('@');
         for (const auto c : input) {
-            pos delta = dir[c], npos = robot + delta;
-            if (get(npos) == '.') {
-                swap(robot, npos);
+            pos delta = dir.at(c), npos = robot + delta;
+            if (grid.get(npos) == '.') {
+                grid.swap(robot, npos);
                 robot = npos;
-            } else if (get(npos) == 'O') {
+            } else if (grid.get(npos) == 'O') {
                 if (auto next = find_next_available(npos, delta); next.has_value()) {
-                    swap(npos, *next);
-                    swap(robot, npos);
+                    grid.swap(npos, *next);
+                    grid.swap(robot, npos);
                     robot = npos;
                 }
             }
@@ -137,12 +97,12 @@ struct warehouse {
     }
 
     int part2() {
-        reset();
         upscale();
+        robot = grid.find_first('@');
         for (const auto c : input) {
-            pos delta = dir[c], npos = robot + delta;
-            if (get(npos) == '.') {
-                swap(robot, npos);
+            pos delta = dir.at(c), npos = robot + delta;
+            if (grid.get(npos) == '.') {
+                grid.swap(robot, npos);
                 robot = npos;
             } else if (is_block(npos) and is_horizontal(delta)) {
                 if (move_horizontal(robot, delta)) { robot = npos; }
@@ -154,32 +114,17 @@ struct warehouse {
     }
 
     void upscale() {
-        vector<string> ngrid(grid.size());
-        for (int y = 0; y < grid.size(); y++) {
-            for (int x = 0; x < grid[0].size(); x++) {
-                if (grid[y][x] == '.') {
-                    ngrid[y] += "..";
-                } else if (grid[y][x] == '#') {
-                    ngrid[y] += "##";
-                } else if (grid[y][x] == '@') {
-                    ngrid[y] += "@.";
-                } else if (grid[y][x] == 'O') {
-                    ngrid[y] += "[]";
-                }
-            }
+        grid.data.clear();
+        for (auto row : init.rows()) {
+            auto fn = [](auto c) { return c == '@' ? "@."s : c == 'O' ? "[]"s : string(2, c); };
+            auto nrow = row | vs::transform(fn) | rs::to<vector<string>>();
+            grid.add_row(join(nrow, ""));
         }
-        grid = ngrid;
-        robot = locate('@');
     }
 
-    int64_t score(char ch) {
-        int64_t sc = 0;
-        for (int y = 0; y < grid.size(); y++) {
-            for (int x = 0; x < grid[0].size(); x++) {
-                if (get({ x, y }) == ch) { sc += (y * 100 + x); }
-            }
-        }
-        return sc;
+    i64 score(char ch) {
+        return rs::fold_left(
+                grid.find(ch) | vs::transform([](auto p) { return p.imag() * 100 + p.real(); }), 0l, plus());
     }
 };
 

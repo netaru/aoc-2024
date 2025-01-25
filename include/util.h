@@ -219,6 +219,17 @@ struct plane {
     }
 
     void add_row(auto row) { data.push_back({ row.cbegin(), row.cend() }); }
+    std::vector<std::string> rows() { return split(as_string(), "\n"); }
+    std::vector<std::string> columns() {
+        std::vector<std::string> result;
+        const auto r = rows();
+        for (size_t y = 0; y < r.size(); ++y) {
+            std::string column;
+            for (size_t x = 0; x < r[y].size(); ++x) { column += r[y][x]; }
+            result.push_back(column);
+        }
+        return result;
+    }
 
     void set(std::optional<pos> p, T v) {
         if (p.has_value()) set(p.value(), v);
@@ -326,5 +337,11 @@ template <typename T>
 inline std::vector<T> vmerge(std::vector<T> lhs, std::vector<T> rhs) {
     rs::copy(lhs, std::back_inserter(rhs));
     return rhs;
+}
+
+inline std::string remove(std::string s, char c = '\n') {
+    auto ret = rs::remove(s, c);
+    s.erase(ret.begin(), ret.end());
+    return s;
 }
 };
