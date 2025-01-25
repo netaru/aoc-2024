@@ -1,81 +1,51 @@
-#include <algorithm>
-#include <cmath>
-#include <complex>
-#include <cstddef>
-#include <cstdlib>
 #include <iostream>
-#include <istream>
-#include <iterator>
-#include <numeric>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 
 #include "util.h"
 
-using poss = std::unordered_set<pos>;
-using freqs = std::unordered_map<char, poss>;
+using namespace std;
 
-freqs parse(std::istream &is) {
-    plane p(is);
-    auto ch = p.values();
-    ch.erase(ch.find('.'));
+using freqs = unordered_map<char, poses>;
+
+struct station {
+    plane<char> grid;
     freqs f;
-    for (const auto &c : ch) { f[c] = p.find(c); }
-    return f;
-}
 
-const size_t max = 50;
-
-bool inbounds(pos p) { return p.real() >= 0 and p.real() < max and p.imag() >= 0 and p.imag() < max; }
-void add(pos delta, pos at, poss &which) {
-    for (; inbounds(at); at += delta) { which.insert(at); }
-}
-
-template <int part>
-poss antinodes(pos origin, poss others) {
-    poss result;
-    for (auto other : others) {
-        if (other == origin) continue;
-        if constexpr (part == 1) {
-            pos delta = other - origin;
-            pos node = origin + delta + delta;
-            if (inbounds(node)) { result.insert(node); }
-        } else {
-            add(other - origin, origin, result);
-            add(origin - other, origin, result);
-        }
+    station(istream &is) : grid(is) {
+        auto ch = grid.values();
+        ch.erase(ch.find('.'));
+        for (const auto &c : ch) { f[c] = grid.find(c); }
     }
-    return result;
-}
 
-template <int part>
-poss collect(std::pair<char, poss> p) {
-    auto &[ch, input] = p;
-    return std::accumulate(input.begin(), input.end(), poss{}, [&](poss acc, pos where) {
-        poss anti = antinodes<part>(where, input);
-        std::copy(anti.begin(), anti.end(), std::inserter(acc, acc.begin()));
-        return acc;
-    });
-}
+    template <int part>
+    poses antinodes(pos origin, poses others) {
+        auto filt = [&](pos other) { return other != origin; };
+        auto trans = [&](pos other) -> poses {
+            if constexpr (part == 1) {
+                if (pos delta = other - origin, node = origin + delta + delta; grid.valid(node)) return { node };
+            } else {
+                return grid.line(origin, other);
+            }
+            return {};
+        };
+        return rs::fold_left(others | vs::filter(filt) | vs::transform(trans), poses{}, dave::merge);
+    }
 
-template <int part = 1>
-size_t get_antinodes(const freqs &frequencies) {
-    return std::accumulate(
-                   frequencies.begin(),
-                   frequencies.end(),
-                   poss{},
-                   [](poss acc, std::pair<char, poss> p) {
-                       poss anti = collect<part>(p);
-                       std::copy(anti.begin(), anti.end(), std::inserter(acc, acc.begin()));
-                       return acc;
-                   })
-            .size();
-}
+    template <int part>
+    poses collect(pair<char, poses> p) {
+        auto &[c, input] = p;
+        return rs::fold_left(
+                input | vs::transform([&](auto where) { return antinodes<part>(where, input); }), poses{}, dave::merge);
+    }
+
+    template <int part = 1>
+    size_t get_antinodes() {
+        return rs::fold_left(f | vs::transform([&](auto p) { return collect<part>(p); }), poses{}, dave::merge).size();
+    }
+};
 
 int main(int argc, char *argv[]) {
-    freqs f = parse(std::cin);
-    std::cout << "Part1: " << get_antinodes(f) << "\n";
-    std::cout << "Part2: " << get_antinodes<2>(f) << "\n";
+    station s(cin);
+    println("Part1: {}", s.get_antinodes<1>());
+    println("Part2: {}", s.get_antinodes<2>());
     return 0;
 }

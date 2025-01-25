@@ -257,6 +257,13 @@ struct plane {
         return s;
     }
 
+    poses line(pos from, pos to) {
+        poses result;
+        for (pos at = from, delta = from - to; valid(at); at += delta) { result.insert(at); }
+        for (pos at = from, delta = to - from; valid(at); at += delta) { result.insert(at); }
+        return result;
+    }
+
     poses find(T v) {
         poses result;
         for (i64 y = 0; y < data.size(); ++y) {
@@ -308,5 +315,10 @@ T sort(T c) {
 auto sort(auto &c, auto comp = std::less()) {
     std::sort(c.begin(), c.end(), comp);
     return c;
+}
+
+inline poses merge(poses lhs, poses rhs) {
+    rs::copy(lhs, std::inserter(rhs, rhs.begin()));
+    return rhs;
 }
 };
