@@ -73,7 +73,7 @@ struct disk {
             if (auto m = find(heap, file.size, file.offset); m.has_value()) { push(heap, file.move(m.value())); }
             return file.id * (file.offset * file.size + (file.size * (file.size - 1)) / 2);
         };
-        return rs::fold_left(files | vs::reverse | vs::transform(fn), 0l, plus());
+        return rs::fold_right(files | vs::transform(fn), 0l, plus());
     }
 };
 
