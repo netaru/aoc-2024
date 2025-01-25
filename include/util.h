@@ -321,4 +321,10 @@ inline poses merge(poses lhs, poses rhs) {
     rs::copy(lhs, std::inserter(rhs, rhs.begin()));
     return rhs;
 }
+
+template <typename T>
+inline std::vector<T> vmerge(std::vector<T> lhs, std::vector<T> rhs) {
+    rs::copy(lhs, std::back_inserter(rhs));
+    return rhs;
+}
 };
