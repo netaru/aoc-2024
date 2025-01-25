@@ -67,14 +67,13 @@ struct disk {
 
     template <int part>
     i64 solve() {
-        deque<memory> files = part == 1 ? fragment() : occupied;
-        i64 checksum = 0;
+        auto files = part == 1 ? fragment() : occupied;
         auto heap = available;
-        for (auto file = files.rbegin(); file != files.rend(); ++file) {
-            if (auto m = find(heap, file->size, file->offset); m.has_value()) { push(heap, file->move(m.value())); }
-            checksum += file->id * (file->offset * file->size + (file->size * (file->size - 1)) / 2);
-        }
-        return checksum;
+        auto fn = [&](memory &file) {
+            if (auto m = find(heap, file.size, file.offset); m.has_value()) { push(heap, file.move(m.value())); }
+            return file.id * (file.offset * file.size + (file.size * (file.size - 1)) / 2);
+        };
+        return rs::fold_left(files | vs::reverse | vs::transform(fn), 0l, plus());
     }
 };
 
