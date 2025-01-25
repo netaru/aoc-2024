@@ -1,9 +1,4 @@
 #include <iostream>
-#include <numeric>
-#include <ranges>
-#include <string>
-#include <utility>
-#include <vector>
 
 #include "util.h"
 
@@ -38,8 +33,9 @@ int main(int argc, char *argv[]) {
     auto ps = split(read(cin), "\n") | vs::transform([](const auto &s) {
                   auto input = split(s, ":");
                   return make_pair(split<i64>(input.back()), stoll(input.front()));
-              });
-    println("Part1: {}", transform_reduce(ps.begin(), ps.end(), 0l, plus(), solve<1>));
-    println("Part2: {}", transform_reduce(ps.begin(), ps.end(), 0l, plus(), solve<2>));
+              }) |
+              rs::to<vector>();
+    println("Part1: {}", rs::fold_left(ps | vs::transform(solve<1>), 0l, plus()));
+    println("Part2: {}", rs::fold_left(ps | vs::transform(solve<2>), 0l, plus()));
     return 0;
 }
