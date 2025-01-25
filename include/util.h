@@ -231,6 +231,50 @@ struct plane {
         return result;
     }
 
+    plane &rotate_right() {
+        std::vector<std::vector<T>> ndata;
+        for (int x = 0; x < data[0].size(); ++x) {
+            std::vector<T> row;
+            for (int y = data.size() - 1; y >= 0; --y) { row.push_back(data[y][x]); }
+            ndata.push_back(row);
+        }
+        data = ndata;
+        return *this;
+    }
+
+    plane &rotate_left() {
+        std::vector<std::vector<T>> ndata;
+        for (int x = data[0].size() - 1; x >= 0; --x) {
+            std::vector<T> row;
+            for (int y = 0; y < data.size(); ++y) { row.push_back(data[y][x]); }
+            ndata.push_back(row);
+        }
+        data = ndata;
+        return *this;
+    }
+
+    plane &transpose_top() {
+        std::vector<std::vector<T>> ndata;
+        for (size_t x = 0; x < data[0].size(); ++x) {
+            std::vector<T> row;
+            for (size_t y = 0; y < data.size(); ++y) { row.push_back(data[y][x]); }
+            ndata.push_back(row);
+        }
+        data = ndata;
+        return *this;
+    }
+
+    plane &transpose_bottom() {
+        std::vector<std::vector<T>> ndata;
+        for (int x = data[0].size() - 1; x >= 0; --x) {
+            std::vector<T> row;
+            for (int y = data.size() - 1; y >= 0; --y) { row.push_back(data[y][x]); }
+            ndata.push_back(row);
+        }
+        data = ndata;
+        return *this;
+    }
+
     void set(std::optional<pos> p, T v) {
         if (p.has_value()) set(p.value(), v);
     }
