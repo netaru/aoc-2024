@@ -5,13 +5,31 @@
 #include <charconv>
 #include <cstddef>
 #include <functional>
+#include <istream>
 #include <iterator>
 #include <print>
 #include <ranges>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <type_traits>
 #include <vector>
+
+template <typename T = char>
+auto read(std::istream &is) {
+    if constexpr (std::is_same_v<T, char>) {
+        return std::string{ std::istream_iterator<T>(is), {} };
+    } else {
+        return std::vector<T>{ std::istream_iterator<T>(is), {} };
+    }
+}
+
+inline std::vector<std::string> read_lines(std::istream &is) {
+    std::string              line;
+    std::vector<std::string> lines;
+    while (std::getline(is, line)) { lines.push_back(line); }
+    return lines;
+}
 
 template <typename T = int>
 std::vector<T> ints(std::string_view sv) {
