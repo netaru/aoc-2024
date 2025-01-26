@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
-#include <numeric>
 #include <print>
 #include <vector>
 
@@ -17,22 +16,18 @@ struct code {
             plane pl(s);
             array<int, 5> item = { 0 };
             for (auto p : pl.find('#')) { item[p.real()]++; }
-            auto &curr = pl.get(pos{ 0, 0 }) == '.' ? keys : locks;
-            curr.push_back(item);
+            (pl.get(pos{ 0, 0 }) == '.' ? keys : locks).push_back(item);
         }
-    }
-
-    bool fits(array<int, 5> lock, array<int, 5> key) {
-        for (int i = 0; i < lock.size(); i++) {
-            if (lock[i] + key[i] > 7) return false;
-        }
-        return true;
     }
 
     int part1() {
-        return transform_reduce(locks.begin(), locks.end(), 0, plus(), [&](auto l) {
-            return count_if(keys.begin(), keys.end(), [&](auto k) { return fits(l, k); });
-        });
+        auto fn = [&](auto lock) {
+            return rs::count_if(keys, [&](auto key) {
+                return rs::none_of(
+                        vs::zip_transform([](int l, int k) { return l + k > 7; }, lock, key), [](bool b) { return b; });
+            });
+        };
+        return rs::fold_left(locks | vs::transform(fn), 0, plus());
     }
 };
 
