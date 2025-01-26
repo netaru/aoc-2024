@@ -123,6 +123,7 @@ std::string join(const T &values, std::string_view delimiter = " ") {
 
 using pos      = std::complex<i64>;
 using history  = std::unordered_set<pos>;
+using poses    = history;
 using dhistory = std::unordered_set<std::pair<pos, pos>>;
 
 namespace dave {
@@ -159,6 +160,7 @@ struct std::hash<std::pair<pos, pos>> {
 struct plane {
     std::vector<std::string> data;
 
+    plane() {}
     plane(std::istream &is) { std::ranges::copy(read_lines(is), std::back_inserter(data)); }
     plane(std::string_view s) { std::ranges::copy(split(s, "\n"), std::back_inserter(data)); }
     plane(size_t x, size_t y, char ch) : data(y, std::string(x, ch)) {}
@@ -183,8 +185,8 @@ struct plane {
         return s;
     }
 
-    std::unordered_set<pos> locate(char ch) {
-        std::unordered_set<pos> result;
+    poses find(char ch) {
+        poses result;
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
                 if (auto p = pos{ x, y }; get(p).value() == ch) result.insert(p);
@@ -210,6 +212,12 @@ struct plane {
         return oss.str();
     }
 };
+
+auto pop(auto &q) {
+    auto p = q.front();
+    q.pop_front();
+    return p;
+}
 
 namespace dave {
 

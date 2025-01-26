@@ -21,7 +21,7 @@ freqs parse(std::istream &is) {
     auto  ch = p.chars();
     ch.erase(ch.find('.'));
     freqs f;
-    for (const auto &c : ch) { f[c] = p.locate(c); }
+    for (const auto &c : ch) { f[c] = p.find(c); }
     return f;
 }
 

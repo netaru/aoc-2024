@@ -28,12 +28,6 @@ struct std::hash<cache_key_t> {
     }
 };
 
-auto pop(auto &q) {
-    auto p = q.front();
-    q.pop_front();
-    return p;
-}
-
 const vector<pos> directions{ { 1, 0 }, { -1, 0 }, { 0, -1 }, { 0, -1 } };
 
 cache_t cache;
