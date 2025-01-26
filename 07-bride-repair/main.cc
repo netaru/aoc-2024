@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <execution>
@@ -9,35 +10,26 @@
 
 #include "split.h"
 
+using input_t  = std::vector<std::string>;
 using int_t    = std::uint64_t;
 using values_t = std::vector<int_t>;
 
 struct problem {
+    input_t  input;
     int_t    target;
     values_t values;
 
-    size_t digit(int_t value) {
-        size_t d = 0;
-        while (value) {
-            ++d;
-            value /= 10;
-        }
-        return d;
-    }
-
-    int_t concat(int_t sum, int_t value) {
-        for (size_t u = digit(value); u; --u) sum *= 10;
-        return sum + value;
-    }
+    size_t digits(int_t value) { return std::log10(value) + 1; }
+    int_t  concat(int_t sum, int_t value) { return sum * std::powl(10, digits(value)) + value; }
 
     template <int part>
     bool solveable(values_t::const_iterator iter, int_t sum) {
         if (iter == values.cend()) return sum == target;
-        if constexpr (part == 2) {
+        if constexpr (part == 1) {
+            return solveable<part>(iter + 1, sum + (*iter)) || solveable<part>(iter + 1, sum * (*iter));
+        } else {
             return solveable<part>(iter + 1, sum + (*iter)) || solveable<part>(iter + 1, sum * (*iter)) ||
                    solveable<part>(iter + 1, concat(sum, (*iter)));
-        } else {
-            return solveable<part>(iter + 1, sum + (*iter)) || solveable<part>(iter + 1, sum * (*iter));
         }
     }
 
@@ -46,12 +38,8 @@ struct problem {
         return solveable<part>(values.cbegin() + 1, *values.cbegin());
     }
 
-    problem(std::string s) {
-        std::vector<std::string> ss = split(s, ':');
-
-        target = std::stoll(ss.front());
-        values = split<int_t>(ss.back());
-    }
+    problem(std::string s)
+        : input(split(s, ':')), target(std::stoull(input.front())), values(split<int_t>(input.back())) {}
 };
 
 int_t reduce(int_t lhs, int_t rhs) { return lhs + rhs; }
