@@ -1,99 +1,117 @@
+#include <algorithm>
+#include <array>
+#include <bitset>
 #include <cmath>
 #include <iostream>
+#include <iterator>
+#include <numeric>
+#include <optional>
+#include <ostream>
 #include <print>
+#include <string>
 #include <vector>
+#include "split.h"
 
 using namespace std;
 
-struct pcode {
-    int         a = 729, b = 0, c = 0;
-    vector<int> ops{ 0, 1, 5, 4, 3, 0 };
-    int         pc = 0;
+struct computer {
+    int64_t           a, b, c, pc;
+    array<int64_t, 3> init;
+    vector<int>       ops;
 
-    int combo(int in) {
-        if (in < 4) {
-            return in;
-        } else if (in == 4) {
-            return a;
-        } else if (in == 5) {
-            return b;
-        } else if (in == 6) {
-            return c;
+    computer(istream &is) {
+        string s;
+        int    inx = 0;
+        while (getline(is, s)) {
+            if (!s.size()) continue;
+            auto sp = split(s);
+            if (sp.front() == "Register") {
+                init[inx++] = stoi(sp.back());
+            } else if (sp.front() == "Program:") {
+                ops = split<int>(sp.back(), ',');
+            }
         }
-        cerr << "no operand found.";
-        exit(0);
+        a = init[0];
+        b = init[1];
+        c = init[2];
     }
 
-    void run() {
+    int combo(int operand) {
+        switch (operand) {
+            case 0:
+            case 1:
+            case 2:
+            case 3: return operand;
+            case 4: return a;
+            case 5: return b;
+            case 6: return c;
+        }
+        return 1;
+    }
+
+    void reset(optional<int64_t> _a) {
+        pc = 0;
+        if (!_a.has_value()) return;
+        a = *_a;
+        b = c = 0;
+    }
+
+    vector<int> run(optional<int64_t> _a = {}, bool once = false) {
+        reset(_a);
+        vector<int> output;
         while (pc < ops.size()) {
             int opcode = ops[pc], operand = ops[pc + 1];
             pc += 2;
-            switch (opcode) {
-                case 0: {
-                    int numerator = a, denominator = pow(2, combo(operand));
-                    if (denominator == 0) {
-                        cerr << "Division by 0\n";
-                        exit(0);
-                    }
-                    a = numerator / denominator;
-                    break;
-                }
-                case 1: {
-                    int tmp = (b ^ operand) & 0x7;
-                    b       = tmp;
-                    break;
-                }
-                case 2: {
-                    int tmp = (combo(operand) % 8);
-                    b       = tmp;
-                    break;
-                }
-                case 3: {
-                    if (a) {
-                        pc = operand;
-                        continue;
-                    }
-                    break;
-                }
-                case 4: {
-                    int tmp = (b ^ c) & 0x7;
-                    b       = tmp;
-                    break;
-                }
-                case 5: {
-                    cout << ((combo(operand) % 8)) << ",";
-                    break;
-                }
-                case 6: {
-                    int numerator = a, denominator = pow(2, combo(operand));
-                    if (denominator == 0) {
-                        cerr << "Division by 0\n";
-                        exit(0);
-                    }
-                    b = numerator / denominator;
-                    break;
-                }
-                case 7: {
-                    int numerator = a, denominator = pow(2, combo(operand));
-                    if (denominator == 0) {
-                        cerr << "Division by 0\n";
-                        exit(0);
-                    }
-                    c = numerator / denominator;
-                    break;
-                }
-                default:
-                    cerr << "This should not happen\n";
-                    exit(0);
-                    break;
+            if (opcode == 0) {
+                a = a >> combo(operand);
+            } else if (opcode == 1) {
+                b = (b ^ operand);
+            } else if (opcode == 2) {
+                b = (combo(operand) % 8);
+            } else if (opcode == 3) {
+                if (a) pc = operand;
+            } else if (opcode == 4) {
+                b = (b ^ c) & 0x7;
+            } else if (opcode == 5) {
+                output.push_back((combo(operand) & 7));
+                if (once) { break; }
+            } else if (opcode == 6) {
+                b = a >> combo(operand);
+            } else if (opcode == 7) {
+                c = a >> combo(operand);
             }
         }
+        return output;
     }
+
+    optional<int64_t> part2(auto current, int64_t value = 0) {
+        if (current == ops.crend()) return value;
+        vector<int> possible;
+        for (int i = 0; i < 8; i++) {
+            if (run(value << 3 | i, true).front() == *current) { possible.push_back(i); }
+        }
+        for (int maybe : possible) {
+            if (auto v = part2(current + 1, value << 3 | maybe); v.has_value()) return v;
+        }
+        return {};
+    }
+
+    int64_t part2() { return part2(ops.crbegin()).value_or(0); }
 };
 
+string to_string(vector<int> out) {
+    string s;
+    bool   added = false;
+    for (auto i : out) {
+        s += (added ? "," : "") + to_string(i);
+        added = true;
+    }
+    return s;
+}
+
 int main(int argc, char *argv[]) {
-    pcode p;
-    p.run();
-    cout << "\n";
+    computer p(cin);
+    cout << "Part1: " + to_string(p.run()) + "\n";
+    cout << "Part2: " << p.part2() << "\n";
     return 0;
 }
