@@ -1,5 +1,4 @@
 #include <cmath>
-#include <cstdint>
 #include <iostream>
 #include <optional>
 #include <print>
@@ -10,7 +9,7 @@
 using namespace std;
 
 struct computer {
-    int64_t a, b, c, pc;
+    i64 a, b, c, pc;
     vector<int> ops;
 
     computer(istream &is) : b(0), c(0) {
@@ -19,7 +18,7 @@ struct computer {
         ops = ints(input[1]);
     }
 
-    int64_t combo(int64_t operand) {
+    i64 combo(i64 operand) {
         switch (operand) {
             case 3: return operand;
             case 4: return a;
@@ -29,7 +28,7 @@ struct computer {
         return -1;
     }
 
-    void reset(optional<int64_t> _a) {
+    void reset(optional<i64> _a) {
         pc = 0;
         if (!_a.has_value()) return;
         a = *_a;
@@ -37,11 +36,11 @@ struct computer {
     }
 
     template <int part = 1>
-    auto run(optional<int64_t> _a = {}) {
+    auto run(optional<i64> _a = {}) {
         reset(_a);
-        vector<int64_t> output;
+        vector<i64> output;
         while (pc < ops.size()) {
-            int64_t opcode = ops[pc], operand = ops[pc + 1];
+            i64 opcode = ops[pc], operand = ops[pc + 1];
             pc += 2;
             if (opcode == 0) {
                 a = a >> combo(operand);
@@ -66,7 +65,7 @@ struct computer {
         if constexpr (part == 2) return 0l;
     }
 
-    optional<int64_t> part2(auto current, int64_t value = 0) {
+    optional<i64> part2(auto current, i64 value = 0) {
         if (current == ops.crend()) { return value; }
         vector<int> possible;
         for (int i = 0; i < 8; i++) {
@@ -78,7 +77,7 @@ struct computer {
         return {};
     }
 
-    int64_t part2() { return part2(ops.crbegin()).value_or(0); }
+    i64 part2() { return part2(ops.crbegin()).value_or(0); }
 };
 
 int main(int argc, char *argv[]) {
