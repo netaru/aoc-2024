@@ -1,27 +1,37 @@
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <print>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 using namespace std;
 
-struct prng {
-    int64_t seed, current;
+using pair_t   = pair<int64_t, int64_t>;
+using banana_t = unordered_map<int64_t, int64_t>;
 
-    prng(int64_t _seed) : seed(_seed), current(_seed) {}
+struct monkey {
+    int64_t         seed, current;
+    vector<int64_t> prices, changes;
+
+    monkey(int64_t _seed) : seed(_seed), current(_seed) { prices.push_back(current % 10); }
 
     constexpr int64_t mix(int64_t n, int64_t v) { return n ^ v; }
-    constexpr int64_t mul(int64_t n) { return n << 6; }
-    constexpr int64_t mul2(int64_t n) { return n << 11; }
+    constexpr int64_t mul(int64_t n, int64_t v = 6) { return n << v; }
     constexpr int64_t div(int64_t n) { return n >> 5; }
     constexpr int64_t prune(int64_t n) { return n & 16777215; }
 
     int64_t tick() {
-        current = prune(mix(current, mul(current)));
-        current = prune(mix(current, div(current)));
-        current = prune(mix(current, mul2(current)));
+        current      = prune(mix(current, mul(current)));
+        current      = prune(mix(current, div(current)));
+        current      = prune(mix(current, mul(current, 11)));
+        int64_t prev = prices.back();
+        prices.push_back(current % 10);
+        changes.push_back(prices.back() - prev);
         return current;
     }
 
@@ -29,17 +39,33 @@ struct prng {
         for (int64_t i = 0; i < n; ++i) { tick(); }
         return current;
     }
+
+    int64_t history(int64_t index, int64_t offset = 0) const { return (changes[index - offset] + 9) << (offset * 5); }
+    void    sell(banana_t &bananas) const {
+        unordered_set<int64_t> seen;
+        for (int i = 3; i < changes.size(); ++i) {
+            int64_t seq = history(i, 0) | history(i, 1) | history(i, 2) | history(i, 3);
+            if (!seen.contains(seq)) {
+                seen.insert(seq);
+                bananas[seq] += prices[i + 1];
+            }
+        }
+    }
 };
 
 int main(int argc, char *argv[]) {
-    int64_t         sum = 0;
-    vector<int64_t> nums{ istream_iterator<int64_t>(cin), {} };
-    for (auto v : nums) {
-        prng    rng(v);
-        int64_t value = rng.next(2000);
-        print("{}: {}\n", v, value);
-        sum += value;
-    }
-    print("Part1: {}\n", sum);
+    int64_t  part1 = 0;
+    banana_t bananas;
+    for_each(istream_iterator<int64_t>(cin), {}, [&](int64_t value) {
+        monkey m(value);
+        part1 += m.next(2000);
+        m.sell(bananas);
+    });
+    auto part2 = max_element(bananas.begin(), bananas.end(), [](const pair_t &lhs, const pair_t &rhs) {
+        return lhs.second < rhs.second;
+    });
+    print("Part1: {}\n", part1);
+    print("Part2: {}\n", part2->second);
+
     return 0;
 }
