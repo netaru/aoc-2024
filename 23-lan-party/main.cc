@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <iostream>
 #include <istream>
+#include <iterator>
 #include <print>
 #include <ranges>
 #include <set>
@@ -26,6 +27,9 @@ struct std::hash<network_t> {
 
 struct LAN {
     nodes_t nodes;
+
+    set<network_t> connected;
+
     LAN(istream &is) {
         string s;
         while (getline(is, s)) {
@@ -33,28 +37,48 @@ struct LAN {
             nodes[first].insert(second);
             nodes[second].insert(first);
         }
+        for (const auto node : views::keys(nodes)) { connect(node, { node }); }
+    }
+
+    void connect(string node, network_t req) {
+        if (connected.contains(req)) return;
+        connected.insert(req);
+        for (const auto n : nodes[node]) {
+            if (req.contains(n)) continue;
+            network_t nreq;
+            set_intersection(req.begin(), req.end(), nodes[n].begin(), nodes[n].end(), inserter(nreq, nreq.begin()));
+            if (nreq.size() != req.size()) continue;
+            nreq.insert(n);
+            connect(n, nreq);
+        }
     }
 
     uint64_t part1() {
-        set<network_t> networks;
-        for (const auto x : views::keys(nodes)) {
-            for (const auto y : nodes[x]) {
-                for (const auto z : nodes[y]) {
-                    if (x != z and nodes[z].contains(x)) {
-                        network_t network{ x, y, z };
-                        if (any_of(network.begin(), network.end(), [](string_view s) { return s[0] == 't'; })) {
-                            networks.insert(network);
-                        }
-                    }
-                }
-            }
+        uint64_t total = 0;
+        for (auto s : connected) {
+            if (s.size() == 3 and any_of(s.begin(), s.end(), [](string_view sv) { return sv[0] == 't'; })) total += 1;
         }
-        return networks.size();
+        return total;
+    }
+
+    string part2() {
+        auto   max   = max_element(connected.begin(), connected.end(), [](network_t lhs, network_t rhs) {
+            return lhs.size() < rhs.size();
+        });
+        bool   added = false;
+        string result;
+        for (auto s : *max) {
+            if (added) result += ",";
+            result += s;
+            added = true;
+        }
+        return result;
     }
 };
 
 int main(int argc, char *argv[]) {
     LAN l(cin);
     print("Part1: {}\n", l.part1());
+    print("Part2: {}\n", l.part2());
     return 0;
 }
