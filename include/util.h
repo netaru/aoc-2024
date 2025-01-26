@@ -185,18 +185,20 @@ struct std::hash<std::pair<pos, pos>> {
 
 template <typename T = char>
 struct plane {
-    std::vector<std::vector<T>> data;
+    using row_t = std::vector<T>;
+    using data_t = std::vector<row_t>;
+    data_t data;
 
     plane() {}
     plane(const plane<T> &other) : data(other.data) {}
     plane(std::istream &is) : data(build(read_lines(is))) {}
     plane(std::string_view s) : data(build(split(s, "\n"))) {}
-    plane(size_t x, size_t y, T v) : data(y, std::vector<T>(x, v)) {}
+    plane(size_t x, size_t y, T v) : data(y, row_t(x, v)) {}
 
-    std::vector<std::vector<T>> build(std::vector<std::string> lines) {
-        std::vector<std::vector<T>> result;
+    data_t build(std::vector<std::string> lines) {
+        data_t result;
         for (auto line : lines) {
-            std::vector<T> vec;
+            row_t vec;
             for (auto ch : line) {
                 if constexpr (std::is_same_v<T, char>) {
                     vec.push_back(ch);
@@ -209,9 +211,9 @@ struct plane {
         return result;
     }
 
-    bool valid(pos p) const {
-        return p.imag() >= 0 and p.imag() < data.size() and p.real() >= 0 and p.real() < data[p.imag()].size();
-    }
+    inline bool valid(i64 x, i64 y) const { return y >= 0 and y < data.size() and x >= 0 and x < data[y].size(); }
+
+    bool valid(pos p) const { return valid(p.real(), p.imag()); }
 
     std::optional<T> get(pos p) const {
         if (valid(p)) return data[p.imag()][p.real()];
@@ -223,56 +225,38 @@ struct plane {
     std::vector<std::string> columns() {
         std::vector<std::string> result;
         const auto r = rows();
-        for (size_t x = 0; x < r[0].size(); ++x) {
+        for (size_t x = 0; x < max_size(); ++x) {
             std::string column;
-            for (size_t y = 0; y < r.size(); ++y) { column += r[y][x]; }
+            for (size_t y = 0; y < r.size(); ++y) {
+                if (valid(x, y)) column += r[y][x];
+            }
             result.push_back(column);
         }
         return result;
     }
 
     plane &rotate_right() {
-        std::vector<std::vector<T>> ndata;
-        for (int x = 0; x < data[0].size(); ++x) {
-            std::vector<T> row;
-            for (int y = data.size() - 1; y >= 0; --y) { row.push_back(data[y][x]); }
-            ndata.push_back(row);
-        }
-        data = ndata;
-        return *this;
+        auto xs = vs::iota(0u, max_size());
+        auto ys = vs::iota(0u, data.size()) | vs::reverse;
+        return transform(xs, ys);
     }
 
     plane &rotate_left() {
-        std::vector<std::vector<T>> ndata;
-        for (int x = data[0].size() - 1; x >= 0; --x) {
-            std::vector<T> row;
-            for (int y = 0; y < data.size(); ++y) { row.push_back(data[y][x]); }
-            ndata.push_back(row);
-        }
-        data = ndata;
-        return *this;
+        auto xs = vs::iota(0u, max_size()) | vs::reverse;
+        auto ys = vs::iota(0u, data.size());
+        return transform(xs, ys);
     }
 
-    plane &transpose_top() {
-        std::vector<std::vector<T>> ndata;
-        for (size_t x = 0; x < data[0].size(); ++x) {
-            std::vector<T> row;
-            for (size_t y = 0; y < data.size(); ++y) { row.push_back(data[y][x]); }
-            ndata.push_back(row);
-        }
-        data = ndata;
-        return *this;
+    plane &transpose() {
+        auto xs = vs::iota(0u, max_size());
+        auto ys = vs::iota(0u, data.size());
+        return transform(xs, ys);
     }
 
-    plane &transpose_bottom() {
-        std::vector<std::vector<T>> ndata;
-        for (int x = data[0].size() - 1; x >= 0; --x) {
-            std::vector<T> row;
-            for (int y = data.size() - 1; y >= 0; --y) { row.push_back(data[y][x]); }
-            ndata.push_back(row);
-        }
-        data = ndata;
-        return *this;
+    plane &rtranspose() {
+        auto xs = vs::iota(0u, max_size()) | vs::reverse;
+        auto ys = vs::iota(0u, data.size()) | vs::reverse;
+        return transform(xs, ys);
     }
 
     void set(std::optional<pos> p, T v) {
@@ -351,6 +335,24 @@ struct plane {
     }
 
     std::string as_string() { return join(data, "\n"); }
+
+    inline size_t max_size() {
+        return rs::max(data | vs::transform([](auto v) { return v.size(); }));
+    }
+
+   private:
+    inline plane<T> &transform(auto xs, auto ys) {
+        data_t ndata;
+        for (auto x : xs) {
+            row_t nrow;
+            for (auto y : ys) {
+                if (valid(x, y)) nrow.push_back(data[y][x]);
+            }
+            ndata.push_back(nrow);
+        }
+        data = ndata;
+        return *this;
+    }
 };
 
 auto pop(auto &q) {
