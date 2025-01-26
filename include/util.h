@@ -235,6 +235,24 @@ struct plane {
         return result;
     }
 
+    plane &mirror() {
+        auto xs = vs::iota(0u, max_size()) | vs::reverse;
+        auto ys = vs::iota(0u, data.size());
+        return ytransform(xs, ys);
+    }
+
+    plane &ymirror() {
+        auto xs = vs::iota(0u, max_size());
+        auto ys = vs::iota(0u, data.size()) | vs::reverse;
+        return ytransform(xs, ys);
+    }
+
+    plane &double_mirror() {
+        auto xs = vs::iota(0u, max_size()) | vs::reverse;
+        auto ys = vs::iota(0u, data.size()) | vs::reverse;
+        return ytransform(xs, ys);
+    }
+
     plane &rotate_right() {
         auto xs = vs::iota(0u, max_size());
         auto ys = vs::iota(0u, data.size()) | vs::reverse;
@@ -346,6 +364,19 @@ struct plane {
         for (auto x : xs) {
             row_t nrow;
             for (auto y : ys) {
+                if (valid(x, y)) nrow.push_back(data[y][x]);
+            }
+            ndata.push_back(nrow);
+        }
+        data = ndata;
+        return *this;
+    }
+
+    inline plane<T> &ytransform(auto &xs, auto &ys) {
+        data_t ndata;
+        for (auto y : ys) {
+            row_t nrow;
+            for (auto x : xs) {
                 if (valid(x, y)) nrow.push_back(data[y][x]);
             }
             ndata.push_back(nrow);
