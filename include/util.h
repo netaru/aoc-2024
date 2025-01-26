@@ -341,7 +341,7 @@ struct plane {
     }
 
    private:
-    inline plane<T> &transform(auto xs, auto ys) {
+    inline plane<T> &transform(auto &xs, auto &ys) {
         data_t ndata;
         for (auto x : xs) {
             row_t nrow;
