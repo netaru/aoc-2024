@@ -4,6 +4,7 @@
 #include <map>
 #include <numeric>
 #include <print>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
@@ -39,7 +40,7 @@ auto fn() {
 
 int main(int argc, char* argv[]) {
     vector<i64> xs{ istream_iterator<i64>{ cin }, {} };
-    println("Part1: {}", transform_reduce(xs.begin(), xs.end(), 0ll, plus(), fn<25>()));
-    println("Part2: {}", transform_reduce(xs.begin(), xs.end(), 0ll, plus(), fn<75>()));
+    println("Part1: {}", rs::fold_left(xs | vs::transform(fn<25>()), 0ll, plus()));
+    println("Part2: {}", rs::fold_left(xs | vs::transform(fn<75>()), 0ll, plus()));
     return 0;
 }
