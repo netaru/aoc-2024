@@ -4,11 +4,9 @@
 
 using namespace std;
 
-using freqs = unordered_map<char, poses>;
-
 struct station {
     plane<char> grid;
-    freqs f;
+    unordered_map<char, poses> f;
 
     station(istream &is) : grid(is) {
         auto ch = grid.values();

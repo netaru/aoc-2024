@@ -14,11 +14,11 @@ int part1(span<int> left, span<int> right) {
 }
 
 int part2(span<int> left, span<int> right) {
-    auto frequencies = rs::fold_left(right, map<int, int>{}, [](auto m, int value) {
+    auto frequencies = rs::fold_left(right, map<int, int>{}, [](auto &&m, int value) {
         m[value]++;
         return m;
     });
-    return rs::fold_left(vs::transform(left, [&](int v) { return v * frequencies[v]; }), 0, plus());
+    return rs::fold_left(left | vs::transform([&](int v) { return v * frequencies[v]; }), 0, plus());
 }
 
 int main(int argc, char *argv[]) {
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     for (auto &value : values | vs::drop(1) | vs::stride(2)) right.push_back(value);
     rs::sort(left);
     rs::sort(right);
-    println("Part 1: {}", part1(left, right));
-    println("Part 2: {}", part2(left, right));
+    println("Part1: {}", part1(left, right));
+    println("Part2: {}", part2(left, right));
     return 0;
 }
