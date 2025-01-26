@@ -1,67 +1,34 @@
-#include <complex>
 #include <cstdlib>
 #include <deque>
 #include <iostream>
 #include <print>
 #include <tuple>
 #include <unordered_map>
-#include <vector>
+
+#include "util.h"
 
 using namespace std;
-using pos     = complex<int>;
-using path_t  = tuple<pos, size_t>;
-using queue_t = deque<path_t>;
-using nodes_t = unordered_map<pos, int>;
-
-template <>
-struct std::hash<pos> {
-    std::size_t operator()(const pos &p) const {
-        return std::hash<int>()(p.real()) ^ (std::hash<int>()(p.imag()) << 1);
-    }
-};
-
-auto pop(auto &q) {
-    auto p = q.front();
-    q.pop_front();
-    return p;
-}
 
 constexpr int get_distance(const pos &lhs, const pos &rhs) {
     return abs(lhs.real() - rhs.real()) + abs(lhs.imag() - rhs.imag());
 }
 
 struct cpu {
-    nodes_t        nodes;
-    vector<string> grid;
-    pos            start, end;
+    plane pl;
+    pos   start, end;
 
-    cpu(istream &is) {
-        string s;
-        int    y = 0;
-        while (getline(is, s)) {
-            grid.push_back(s);
-            for (int x = 0; x < s.size(); ++x) {
-                if (s[x] == 'S') start = pos{ x, y };
-                if (s[x] == 'E') end = pos{ x, y };
-            }
-            y++;
-        }
-        traverse();
-    }
+    unordered_map<pos, int> nodes;
 
-    bool valid(pos p) {
-        return p.real() >= 0 and p.real() < grid.back().size() and p.imag() >= 0 and p.imag() < grid.size();
-    }
-    char get(pos p) { return valid(p) ? grid[p.imag()][p.real()] : '#'; }
-
-    void traverse() {
-        queue_t q{ { start, 0 } };
+    cpu(istream &is) : pl(is), start(*pl.find('S').begin()), end(*pl.find('E').begin()) {
         nodes.emplace(start, 0);
-        while (q.size()) {
-            const auto [current, ms] = pop(q);
-            for (pos dir : vector<pos>{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) {
-                pos npos = current + dir;
-                if (nodes.contains(npos) or get(npos) == '#') continue;
+        bfs();
+    }
+
+    void bfs() {
+        for (deque<tuple<pos, size_t>> q{ { start, 0 } }; q.size(); q.pop_front()) {
+            const auto [current, ms] = q.front();
+            for (pos npos : add(current, cardinal)) {
+                if (nodes.contains(npos) or pl.get(npos).value_or('#') == '#') continue;
                 nodes.emplace(npos, ms + 1);
                 q.emplace_back(npos, ms + 1);
                 break;
@@ -90,7 +57,7 @@ struct cpu {
 int main(int argc, char *argv[]) {
     cpu c(cin);
     const auto [part1, part2] = c.cheat();
-    print("Part1: {}\n", part1);
-    print("Part2: {}\n", part2);
+    println("Part1: {}", part1);
+    println("Part2: {}", part2);
     return 0;
 }
