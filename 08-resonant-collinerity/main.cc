@@ -6,7 +6,7 @@ using namespace std;
 
 struct station {
     plane<char> grid;
-    unordered_map<char, poses> f;
+    unordered_map<char, vector<pos>> f;
 
     station(istream &is) : grid(is) {
         auto ch = grid.values();
@@ -15,13 +15,13 @@ struct station {
     }
 
     template <int part>
-    poses antinodes(pos origin, poses others) {
+    poses antinodes(pos origin, vector<pos> others) {
         auto filt = [&](pos other) { return other != origin; };
         auto trans = [&](pos other) -> poses {
             if constexpr (part == 1) {
                 if (pos delta = other - origin, node = origin + delta + delta; grid.valid(node)) return { node };
             } else {
-                return grid.line(origin, other);
+                return grid.line(origin, other) | rs::to<poses>();
             }
             return {};
         };
@@ -29,7 +29,7 @@ struct station {
     }
 
     template <int part>
-    poses collect(pair<char, poses> p) {
+    poses collect(pair<char, vector<pos>> p) {
         auto &[c, input] = p;
         return rs::fold_left(
                 input | vs::transform([&](auto where) { return antinodes<part>(where, input); }), poses{}, dave::merge);

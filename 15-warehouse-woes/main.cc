@@ -4,7 +4,6 @@
 #include <optional>
 #include <print>
 #include <ranges>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -12,8 +11,6 @@
 #include "util.h"
 
 using namespace std;
-
-const unordered_map<char, pos> dir{ { '<', dave::W }, { '>', dave::E }, { '^', dave::N }, { 'v', dave::S } };
 
 struct warehouse {
     vector<string> in;
@@ -81,7 +78,7 @@ struct warehouse {
     int part1() {
         robot = grid.find_first('@');
         for (const auto c : input) {
-            pos delta = dir.at(c), npos = robot + delta;
+            pos delta = dave::char_to_pos(c), npos = robot + delta;
             if (grid.get(npos) == '.') {
                 grid.swap(robot, npos);
                 robot = npos;
@@ -100,7 +97,7 @@ struct warehouse {
         upscale();
         robot = grid.find_first('@');
         for (const auto c : input) {
-            pos delta = dir.at(c), npos = robot + delta;
+            pos delta = dave::char_to_pos(c), npos = robot + delta;
             if (grid.get(npos) == '.') {
                 grid.swap(robot, npos);
                 robot = npos;

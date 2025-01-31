@@ -16,6 +16,7 @@
 #include <string_view>
 #include <system_error>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -142,6 +143,12 @@ using dhistory = std::unordered_set<std::pair<pos, pos>>;
 namespace dave {
 const pos N{ 0, -1 }, E{ 1, 0 }, S{ 0, 1 }, W{ -1, 0 };
 const pos NE{ 1, -1 }, NW{ -1, -1 }, SW{ -1, 1 }, SE{ 1, 1 };
+const std::unordered_map<char, pos> __char_to_pos{ { '^', N }, { '<', W }, { '>', E }, { 'v', S } };
+
+inline pos char_to_pos(char c) {
+    if (__char_to_pos.contains(c)) { return __char_to_pos.at(c); }
+    return { 0, 0 };
+}
 };
 
 const std::array<pos, 4> cardinal{ dave::N, dave::E, dave::S, dave::W };
@@ -314,18 +321,19 @@ struct plane {
         return s;
     }
 
-    poses line(pos from, pos to) {
-        poses result;
-        for (pos at = from, delta = from - to; valid(at); at += delta) { result.insert(at); }
-        for (pos at = from, delta = to - from; valid(at); at += delta) { result.insert(at); }
+    std::vector<pos> line(pos from, pos to) {
+        std::vector<pos> result{ from };
+        for (pos delta = from - to, at = from + delta; valid(at); at += delta) { result.push_back(at); }
+        for (pos delta = to - from, at = from + delta; valid(at); at += delta) { result.push_back(at); }
         return result;
     }
 
-    poses find(T v) {
-        poses result;
+    std::vector<pos> find(T v) {
+        std::vector<pos> result;
+        result.reserve(data.size() * data[0].size());
         for (i64 y = 0; y < data.size(); ++y) {
             for (i64 x = 0; x < data[y].size(); ++x) {
-                if (data[y][x] == v) result.insert(pos{ x, y });
+                if (data[y][x] == v) result.emplace_back(x, y);
             }
         }
         return result;
@@ -350,6 +358,11 @@ struct plane {
             }
         }
         return cs;
+    }
+
+    std::vector<pos> corners() {
+        i64 mn = 0, mx = static_cast<i64>(data.size() - 1);
+        return { { pos{ mn, mn }, pos{ mn, mx }, pos{ mx, mn }, pos{ mx, mx } } };
     }
 
     std::string as_string() { return join(data, "\n"); }
@@ -421,4 +434,19 @@ inline std::string remove(std::string s, char c = '\n') {
     s.erase(ret.begin(), ret.end());
     return s;
 }
+
+inline std::vector<size_t> first_combination(size_t sz) { return vs::iota(0ul, sz) | rs::to<std::vector>(); }
+
+inline bool next_combination(auto &indices, size_t limit) {
+    size_t n = indices.size();
+    for (size_t i = 1; i <= n; ++i) {
+        if (indices[n - i] < limit - i) {
+            ++indices[n - i];
+            for (size_t j = n - i + 1; j < n; ++j) { indices[j] = indices[j - 1] + 1; }
+            return true;
+        }
+    }
+    return false;
+}
+
 };

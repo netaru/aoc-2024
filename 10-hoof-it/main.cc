@@ -31,7 +31,7 @@ int bfs(const plane<int> &p, pos where) {
 }
 
 template <int part>
-int score(const plane<int> &p, const poses &zs) {
+int score(const plane<int> &p, const vector<pos> &zs) {
     auto fn = [&](pos ps) { return bfs<part>(p, ps); };
     return rs::fold_left(zs | vs::transform(fn), 0, plus());
 }
